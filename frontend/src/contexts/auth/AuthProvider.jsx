@@ -19,13 +19,16 @@ export default function AuthProvider({ children }) {
     }, [])
 
     const userLogin = (userData) => {
-        setUser(userData)
-        localStorage.setItem("user", JSON.stringify(userData))
+        const { user, token } = userData;
+        setUser(user)
+        localStorage.setItem("user", JSON.stringify(user))
+        localStorage.setItem("token", token)
     }
 
     const userLogout = () => {
         setUser(null)
         localStorage.removeItem("user")
+        localStorage.removeItem("token")
     }
 
     return (
