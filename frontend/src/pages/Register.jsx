@@ -6,7 +6,7 @@ import { Navigate, useNavigate } from "react-router-dom"
 function Register() {
   const [userData, setUserData] = useState({ name: "", email: "", password: "" })
   const [loading, setLoading] = useState(false)
-  const { user, login } = useAuth()
+  const { user, userLogin } = useAuth()
   const navigate = useNavigate()
 
   if (user) {
@@ -22,7 +22,7 @@ function Register() {
       if (!data) {
         throw new Error("Unable to register")
       }
-      login(data)
+      userLogin(data)
       navigate("/dashboard")
     } catch (error) {
       console.log("Error while registering", error)

@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const inviteSchema = mongoose.Schema({
+const inviteSchema = new mongoose.Schema({
     projectId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Project",
@@ -24,7 +24,7 @@ const inviteSchema = mongoose.Schema({
         type: Date,
         default: () => Date.now() + 24 * 60 * 60 * 1000
     }
-})
+}, { timestamps: true })
 
 const Invite = mongoose.model("Invite", inviteSchema)
 

@@ -1,0 +1,148 @@
+import Project from "../models/Project.js"
+import Ticket from "../models/Ticket.js"
+import User from "../models/User.js"
+
+export async function createTicket(req, res) {
+    const { projectId } = req.params
+    const { title, description, priority, status } = req.body
+
+    if (!title || !description) {
+        return res.status(400).json({ message: "Title and description are required", success: false })
+    }
+
+    try {
+        const ticket = await Ticket.create({ title, description, priority, status, projectId })
+
+        return res.status(201).json({ message: "Ticket created successfully", success: true, ticket })
+    } catch (error) {
+        console.error("Failed to create ticket", error.message)
+        return res.status(500).json({ message: "Failed to create ticket", success: false })
+    }
+}
+
+export async function listTicketsByProject(req, res) {
+    const { projectId } = req.params
+    try {
+        const tickets = await Ticket.find({ projectId }).populate("assignee")
+
+        if (tickets.length === 0) {
+            return res.status(404).json({ message: "No tickets found in this project", success: false })
+        }
+
+        return res.status(200).json({ message: "Tickets fetched successfully", success: true, tickets })
+    } catch (error) {
+        console.error("Failed to list tickets by ID", error.message)
+        return res.status(500).json({ message: "Failed to fetch tickets", success: false })
+    }
+}
+
+export async function getOneTicket(req, res) {
+    const { projectId, ticketId } = req.params
+    try {
+        const project = await Project.findById(projectId)
+
+        if (!project) {
+            return res.status(404).json({ message: "Project not found", success: false })
+        }
+
+        const ticket = await Ticket.findById(ticketId).populate("assignee")
+
+        if (!ticket) {
+            return res.status(404).json({ message: "Ticket not found", success: false })
+        }
+
+        return res.status(200).json({ message: "Ticket fetched successfully", success: true, ticket })
+    } catch (error) {
+        console.error("Failed to get a ticket", error.message)
+        return res.status(500).json({ message: "Failed to fetch ticket", success: false })
+    }
+}
+
+export async function updateTicket(req, res) {
+    const { projectId, ticketId } = req.params
+    const { title, description, priority, status } = req.body
+
+    if (!title && !description && !priority && !status) {
+        return res.status(400).json({ message: "Title, description, priority or status is required", success: false })
+    }
+
+    let updates = {}
+    if (title) updates.title = title
+    if (description) updates.description = description
+    if (priority) updates.priority = priority
+    if (status) updates.status = status
+
+    try {
+        const project = await Project.findById(projectId)
+
+        if (!project) {
+            return res.status(404).json({ message: "Project not found", success: false })
+        }
+
+        const updatedTicket = await Ticket.findByIdAndUpdate(ticketId, updates, { new: true })
+
+        if (!updatedTicket) {
+            return res.status(404).json({ message: "Ticket not found", success: false })
+        }
+
+        return res.status(200).json({ message: "Ticket updated successfully", success: true, ticket: updatedTicket })
+    } catch (error) {
+        console.error("Failed to update a ticket", error.message)
+        return res.status(500).json({ message: "Failed to update ticket", success: false })
+    }
+}
+
+export async function deleteTicket(req, res) {
+    const { projectId, ticketId } = req.params
+    try {
+        const project = await Project.findById(projectId)
+
+        if (!project) {
+            return res.status(404).json({ message: "Project not found", success: false })
+        }
+
+        const deletedTicket = await Ticket.findByIdAndDelete(ticketId)
+
+        if (!deletedTicket) {
+            return res.status(404).json({ message: "Ticket not found", success: false })
+        }
+
+        return res.status(200).json({ message: "Ticket deleted successfully", success: true, ticket: deletedTicket })
+    } catch (error) {
+        console.error("Failed to delete a ticket", error.message)
+        return res.status(500).json({ message: "Failed to delete ticket", success: false })
+    }
+}
+
+export async function assignTicket(req, res) {
+    const { projectId, ticketId } = req.params
+    const { assigneeId } = req.body
+
+    try {
+        const project = await Project.findById(projectId)
+
+        if (!project) {
+            return res.status(404).json({ message: "Project not found", success: false })
+        }
+
+        const ticket = await Ticket.findById(ticketId)
+
+        if (!ticket) {
+            return res.status(404).json({ message: "Ticket not found", success: false })
+        }
+        
+        const user = await User.findById(assigneeId)
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found", success: false })
+        }
+
+        ticket.assignee = assigneeId
+        await ticket.save()
+
+        return res.status(200).json({ message: "Ticket assigned successfully", success: true, ticket })
+    } catch (error) {
+        console.error("Failed to assign a ticket", error.message)
+        return res.status(500).json({ message: "Failed to assign ticket", success: false })
+    }
+}
