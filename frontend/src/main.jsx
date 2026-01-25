@@ -12,6 +12,7 @@ const Home = lazy(() => import("./pages/Home.jsx"))
 const Login = lazy(() => import("./pages/Login.jsx"))
 const Register = lazy(() => import("./pages/Register.jsx"))
 const Dashboard = lazy(() => import("./pages/Dashboard.jsx"))
+const ProjectDetail = lazy(() => import("./pages/ProjectDetail.jsx"))
 
 const router = createBrowserRouter([
   {
@@ -25,7 +26,8 @@ const router = createBrowserRouter([
       {
         element: <ProtectedRoute />,
         children: [
-          { path: "/dashboard", element: <Suspense fallback={<Loading />}><Dashboard /></Suspense> }
+          { path: "/dashboard", element: <Suspense fallback={<Loading />}><Dashboard /></Suspense> },
+          { path: "/project/:projectId", element: <Suspense fallback={<Loading />}><ProjectDetail /></Suspense> },
         ]
       }
     ]

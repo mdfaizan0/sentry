@@ -7,17 +7,18 @@ function Dashboard() {
     const [projects, setProjects] = useState([])
     const { user } = useAuth()
 
-    if (!user) {
-        return <Navigate to="/login" />
-    }
-
     useEffect(() => {
         const fetchProjects = async () => {
             const projects = await listAllProjects()
             setProjects(projects)
+            console.log(projects)
         }
         fetchProjects()
     }, [])
+
+    if (!user) {
+        return <Navigate to="/login" />
+    }
 
     return (
         <div>

@@ -38,7 +38,7 @@ export async function createProject(req, res) {
     }
 
     try {
-        const project = await Project.create({ title, description, owner: req.user.id })
+        const project = await Project.create({ title, description, owner: req.user.id, members: [req.user.id] })
         return res.status(201).json({ project, success: true })
     } catch (error) {
         return res.status(500).json({ message: error.message, success: false })
@@ -57,6 +57,11 @@ export async function updateProject(req, res) {
         if (!project) {
             return res.status(404).json({ message: "Project not found", success: false })
         }
+
+        if (project.owner.toString() !== req.user.id) {
+            return res.status(403).json({ message: "You are not authorized to update this project", success: false })
+        }
+
         return res.status(200).json({ project, success: true })
     } catch (error) {
         return res.status(500).json({ message: error.message, success: false })
@@ -75,6 +80,11 @@ export async function deleteProject(req, res) {
         if (!project) {
             return res.status(404).json({ message: "Project not found", success: false })
         }
+
+        if (project.owner.toString() !== req.user.id) {
+            return res.status(403).json({ message: "You are not authorized to delete this project", success: false })
+        }
+
         return res.status(200).json({ project, success: true })
     } catch (error) {
         return res.status(500).json({ message: error.message, success: false })

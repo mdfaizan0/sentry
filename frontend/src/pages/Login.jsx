@@ -32,7 +32,7 @@ function Login() {
   }
   
   return (
-    <div>
+    <div className="font-sans">
       <form onSubmit={handleLogin}>
         <input type="email" placeholder="Email" value={userData.email} onChange={(e) => setUserData({ ...userData, email: e.target.value })} />
         <input type="password" placeholder="Password" value={userData.password} onChange={(e) => setUserData({ ...userData, password: e.target.value })} />

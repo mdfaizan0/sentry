@@ -31,7 +31,7 @@ function Register() {
     }
   }
   return (
-    <div>
+    <div className="font-sans">
       <form onSubmit={handleRegister}>
         <input placeholder="Name" type="text" value={userData.name} onChange={(e) => setUserData({ ...userData, name: e.target.value })} required />
         <input placeholder="Email" type="email" value={userData.email} onChange={(e) => setUserData({ ...userData, email: e.target.value })} required />
