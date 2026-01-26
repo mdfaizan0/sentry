@@ -5,6 +5,7 @@ import App from './App.jsx'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import Loading from './components/Loading'
 import AuthProvider from './contexts/auth/AuthProvider.jsx'
+import { ThemeProvider } from './contexts/theme/ThemeProvider.jsx'
 import ProtectedRoute from './routes/ProtectedRoute'
 import Error from './pages/Error'
 
@@ -35,7 +36,9 @@ const router = createBrowserRouter([
 ])
 
 createRoot(document.getElementById('root')).render(
-  <AuthProvider>
-    <RouterProvider router={router} />
-  </AuthProvider>
+  <ThemeProvider>
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
+  </ThemeProvider>
 )

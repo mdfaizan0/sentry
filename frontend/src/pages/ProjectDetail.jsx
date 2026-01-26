@@ -1,4 +1,5 @@
 import { listAllTickets } from "@/api/tickets.api"
+import Loading from "@/components/Loading"
 import { useEffect, useState } from "react"
 import { useParams } from "react-router-dom"
 
@@ -13,6 +14,14 @@ function ProjectDetail() {
         }
         fetchTickets()
     }, [projectId])
+
+    if (!tickets) {
+        return <Loading />
+    }
+
+    if (tickets.length === 0) {
+        return <div>No tickets found</div>
+    }
 
     return (
         <div>

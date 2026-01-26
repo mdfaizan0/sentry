@@ -1,20 +1,24 @@
 import express from "express"
 import { protect } from "../middlewares/auth.middleware.js"
-import { acceptInvite, addMember, addMemberByInvite, createProject, deleteProject, getOneProject, listProjects, rejectInvite, removeMember, updateProject } from "../controllers/project.controller.js"
+import { acceptInvite, addMember, addMemberByInvite, createProject, deleteProject, getInvites, getOneProject, listProjects, rejectInvite, removeMember, updateProject } from "../controllers/project.controller.js"
+import { checkProjectAccess } from "../middlewares/project.middleware.js"
 
 const router = express.Router()
 
-router.get("/", protect, listProjects)
-router.get("/:id", protect, getOneProject)
-router.post("/", protect, createProject)
-router.put("/:id", protect, updateProject)
-router.delete("/:id", protect, deleteProject)
+router.use(protect)
 
-router.post("/:id/add-member", protect, addMember)
-router.post("/:id/invite-member", protect, addMemberByInvite)
-router.post("/:id/remove-member", protect, removeMember)
+router.get("/", listProjects)
+router.get("/:projectId", getOneProject)
+router.post("/", createProject)
+router.put("/:projectId", checkProjectAccess, updateProject)
+router.delete("/:projectId", checkProjectAccess, deleteProject)
+
+router.post("/:projectId/add-member", checkProjectAccess, addMember)
+router.post("/:projectId/invite-member", checkProjectAccess, addMemberByInvite)
+router.post("/:projectId/remove-member", checkProjectAccess, removeMember)
 
 router.get("/invite/accept", acceptInvite)
 router.get("/invite/reject", rejectInvite)
+router.get("/invites/all/:projectId", checkProjectAccess, getInvites)
 
 export default router

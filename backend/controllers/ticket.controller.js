@@ -1,6 +1,6 @@
-import Project from "../models/Project.js"
 import Ticket from "../models/Ticket.js"
 import User from "../models/User.js"
+import Comment from "../models/Comment.js"
 
 export async function createTicket(req, res) {
     const { projectId } = req.params
@@ -11,18 +11,6 @@ export async function createTicket(req, res) {
     }
 
     try {
-        const project = await Project.findById(projectId)
-
-        if (!project) {
-            return res.status(404).json({ message: "Project not found", success: false })
-        }
-
-        const isMember = project.owner.toString() === req.user.id || project.members.includes(req.user.id)
-
-        if (!isMember) {
-            return res.status(403).json({ message: "You are not authorized to create ticket in this project", success: false })
-        }
-
         const ticket = await Ticket.create({ title, description, priority, status, projectId })
 
         return res.status(201).json({ message: "Ticket created successfully", success: true, ticket })
@@ -34,20 +22,15 @@ export async function createTicket(req, res) {
 
 export async function listTicketsByProject(req, res) {
     const { projectId } = req.params
+    const { status, priority, assignee } = req.query
+
+    const filters = { projectId }
+    if (status) filters.status = status
+    if (priority) filters.priority = priority
+    if (assignee) filters.assignee = assignee
+
     try {
-        const project = await Project.findById(projectId)
-
-        if (!project) {
-            return res.status(404).json({ message: "Project not found", success: false })
-        }
-
-        const isMember = project.owner.toString() === req.user.id || project.members.includes(req.user.id)
-
-        if (!isMember) {
-            return res.status(403).json({ message: "You are not authorized to view tickets of this project", success: false })
-        }
-        
-        const tickets = await Ticket.find({ projectId }).populate("assignee")
+        const tickets = await Ticket.find(filters).populate("assignee")
 
         return res.status(200).json({ message: "Tickets fetched successfully", success: true, tickets })
     } catch (error) {
@@ -59,18 +42,6 @@ export async function listTicketsByProject(req, res) {
 export async function getOneTicket(req, res) {
     const { projectId, ticketId } = req.params
     try {
-        const project = await Project.findById(projectId)
-
-        if (!project) {
-            return res.status(404).json({ message: "Project not found", success: false })
-        }
-
-        const isMember = project.owner.toString() === req.user.id || project.members.includes(req.user.id)
-
-        if (!isMember) {
-            return res.status(403).json({ message: "You are not authorized to view this ticket", success: false })
-        }
-
         const ticket = await Ticket.findById(ticketId).populate("assignee")
 
         if (!ticket) {
@@ -103,18 +74,6 @@ export async function updateTicket(req, res) {
     if (status) updates.status = status
 
     try {
-        const project = await Project.findById(projectId)
-
-        if (!project) {
-            return res.status(404).json({ message: "Project not found", success: false })
-        }
-
-        const isMember = project.owner.toString() === req.user.id || project.members.includes(req.user.id)
-
-        if (!isMember) {
-            return res.status(403).json({ message: "You are not authorized to update this ticket", success: false })
-        }
-
         const updatedTicket = await Ticket.findByIdAndUpdate(ticketId, updates, { new: true })
 
         if (!updatedTicket) {
@@ -135,17 +94,6 @@ export async function updateTicket(req, res) {
 export async function deleteTicket(req, res) {
     const { projectId, ticketId } = req.params
     try {
-        const project = await Project.findById(projectId)
-
-        if (!project) {
-            return res.status(404).json({ message: "Project not found", success: false })
-        }
-
-        const isMember = project.owner.toString() === req.user.id || project.members.includes(req.user.id)
-
-        if (!isMember) {
-            return res.status(403).json({ message: "You are not authorized to delete this ticket", success: false })
-        }
 
         const deletedTicket = await Ticket.findByIdAndDelete(ticketId)
 
@@ -157,6 +105,8 @@ export async function deleteTicket(req, res) {
             return res.status(400).json({ message: "Ticket does not belong to this project" })
         }
 
+        await Comment.deleteMany({ ticketId })
+
         return res.status(200).json({ message: "Ticket deleted successfully", success: true, ticket: deletedTicket })
     } catch (error) {
         console.error("Failed to delete a ticket", error.message)
@@ -165,16 +115,11 @@ export async function deleteTicket(req, res) {
 }
 
 export async function assignTicket(req, res) {
-    const { projectId, ticketId } = req.params
+    const { ticketId } = req.params
     const { assigneeId } = req.body
+    const project = req.project
 
     try {
-        const project = await Project.findById(projectId)
-
-        if (!project) {
-            return res.status(404).json({ message: "Project not found", success: false })
-        }
-
         const ticket = await Ticket.findById(ticketId).populate("assignee")
 
         if (!ticket) {

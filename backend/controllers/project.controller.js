@@ -54,13 +54,6 @@ export async function updateProject(req, res) {
 
     try {
         const project = await Project.findByIdAndUpdate(id, { title, description }, { new: true })
-        if (!project) {
-            return res.status(404).json({ message: "Project not found", success: false })
-        }
-
-        if (project.owner.toString() !== req.user.id) {
-            return res.status(403).json({ message: "You are not authorized to update this project", success: false })
-        }
 
         return res.status(200).json({ project, success: true })
     } catch (error) {
@@ -71,19 +64,8 @@ export async function updateProject(req, res) {
 export async function deleteProject(req, res) {
     const { id } = req.params
 
-    if (!id) {
-        return res.status(400).json({ message: "Invalid Project ID", success: false })
-    }
-
     try {
         const project = await Project.findByIdAndDelete(id)
-        if (!project) {
-            return res.status(404).json({ message: "Project not found", success: false })
-        }
-
-        if (project.owner.toString() !== req.user.id) {
-            return res.status(403).json({ message: "You are not authorized to delete this project", success: false })
-        }
 
         return res.status(200).json({ project, success: true })
     } catch (error) {
@@ -92,24 +74,14 @@ export async function deleteProject(req, res) {
 }
 
 export async function addMember(req, res) {
-    const { id } = req.params
     const { memberId } = req.body
+    const project = req.project
 
-    if (!id || !memberId) {
-        return res.status(400).json({ message: "Invalid Project ID or Member ID", success: false })
+    if (!memberId) {
+        return res.status(400).json({ message: "Member ID required.", success: false })
     }
 
     try {
-        const project = await Project.findById(id)
-
-        if (!project) {
-            return res.status(404).json({ message: "Project not found", success: false })
-        }
-
-        if (project.owner.toString() !== req.user.id) {
-            return res.status(403).json({ message: "You are not authorized to add member to this project", success: false })
-        }
-
         const member = await User.findById(memberId)
         if (!member) {
             return res.status(404).json({ message: "Member not found", success: false })
@@ -128,11 +100,11 @@ export async function addMember(req, res) {
 }
 
 export async function addMemberByInvite(req, res) {
-    const { id } = req.params
+    const project = req.project
     const { email, expiryHours } = req.body
 
-    if (!id || !email) {
-        return res.status(400).json({ message: "Invalid Project ID or Email", success: false })
+    if (!email) {
+        return res.status(400).json({ message: "Email required.", success: false })
     }
 
     if (!email.includes("@") && !email.match(/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/)) {
@@ -140,18 +112,9 @@ export async function addMemberByInvite(req, res) {
     }
 
     try {
-        const project = await Project.findById(id).populate("owner")
-        if (!project) {
-            return res.status(404).json({ message: "Project not found", success: false })
-        }
-
-        if (project.owner.toString() !== req.user.id) {
-            return res.status(403).json({ message: "You are not authorized to add member to this project", success: false })
-        }
-
         const user = await User.findOne({ email })
         if (!user) {
-            return res.status(404).json({ message: "User not found", success: false })
+            return res.status(404).json({ message: "User not found, ask user to register", success: false })
         }
 
         if (project.members.includes(user.id)) {
@@ -263,19 +226,10 @@ export async function getInvites(req, res) {
 }
 
 export async function removeMember(req, res) {
-    const { id: projectId } = req.params
+    const project = req.project
     const { memberId } = req.body
 
     try {
-        const project = await Project.findOne({ id: projectId })
-        if (!project) {
-            return res.status(404).json({ message: "Project not found", success: false })
-        }
-
-        if (project.owner.toString() !== req.user.id) {
-            return res.status(403).json({ message: "You are not authorized to remove member from this project", success: false })
-        }
-
         const memberIndex = project.members.indexOf(memberId)
         if (memberIndex === -1) {
             return res.status(404).json({ message: "Member not found in this project", success: false })
