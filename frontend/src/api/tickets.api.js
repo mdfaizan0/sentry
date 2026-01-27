@@ -1,7 +1,6 @@
 import { client } from "./client"
 
 export const listAllTickets = async (projectId, filters = {}) => {
-    console.log("projectId", projectId)
     const { data } = await client.get(`/tickets/${projectId}`, { params: filters })
     return data.tickets || []
 }
