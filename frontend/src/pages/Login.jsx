@@ -1,11 +1,11 @@
 import { useState } from "react"
 import { Navigate, useNavigate, Link } from "react-router-dom"
-import { motion } from "framer-motion"
 import { toast } from "sonner"
 import { Mail, Lock, ArrowRight, Sun, Moon } from "lucide-react"
 import { useAuth } from "../contexts/auth/useAuth"
 import { login } from "../lib/authActions"
 import { useTheme } from "../contexts/theme/useTheme"
+import { motion } from "framer-motion"
 
 function Login() {
   const [userData, setUserData] = useState({ email: "", password: "" })
@@ -28,7 +28,7 @@ function Login() {
       toast.success("Welcome back to Sentry!")
       navigate("/dashboard")
     } catch (error) {
-      // Error is handled by global interceptor
+      console.error(error)
     } finally {
       setLoading(false)
     }

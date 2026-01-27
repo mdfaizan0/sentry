@@ -1,11 +1,11 @@
 import { useState } from "react"
 import { Navigate, useNavigate, Link } from "react-router-dom"
-import { motion } from "framer-motion"
 import { toast } from "sonner"
 import { Mail, Lock, User, ArrowRight, Sun, Moon } from "lucide-react"
 import { useAuth } from "../contexts/auth/useAuth"
 import { register } from "../lib/authActions"
 import { useTheme } from "../contexts/theme/useTheme"
+import { motion } from "framer-motion"
 
 function Register() {
   const [userData, setUserData] = useState({ name: "", email: "", password: "" })
@@ -28,7 +28,7 @@ function Register() {
       toast.success("Account created successfully!")
       navigate("/dashboard")
     } catch (error) {
-      // Error is handled by global interceptor
+      console.log(error)
     } finally {
       setLoading(false)
     }

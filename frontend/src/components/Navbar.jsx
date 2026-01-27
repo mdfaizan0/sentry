@@ -1,13 +1,25 @@
 import { useState, useEffect } from "react"
-import { Menu, X, Sun, Moon } from "lucide-react"
+import { Menu, X, Sun, Moon, User, LogOut, LayoutDashboard, Settings } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"
 import { useTheme } from "../contexts/theme/useTheme"
+import { useAuth } from "../contexts/auth/useAuth"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Button } from "@/components/ui/button"
 
 const Navbar = () => {
     const [isScrolled, setIsScrolled] = useState(false)
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
     const { theme, toggleTheme } = useTheme()
+    const { user, userLogout } = useAuth()
+    const navigate = useNavigate()
 
     useEffect(() => {
         const handleScroll = () => {
@@ -17,7 +29,12 @@ const Navbar = () => {
         return () => window.removeEventListener("scroll", handleScroll)
     }, [])
 
-    const navLinks = [
+    const handleLogout = async () => {
+        userLogout()
+        navigate("/login")
+    }
+
+    const publicLinks = [
         { name: "Features", href: "#features" },
         { name: "About", href: "#about" },
         { name: "Pricing", href: "#pricing" },
@@ -44,7 +61,7 @@ const Navbar = () => {
 
                 {/* Desktop Nav */}
                 <div className="hidden md:flex items-center gap-3">
-                    {navLinks.map((link) => (
+                    {!user && publicLinks.map((link) => (
                         <a
                             key={link.name}
                             href={link.href}
@@ -53,6 +70,7 @@ const Navbar = () => {
                             {link.name}
                         </a>
                     ))}
+
                     <div className="flex items-center gap-3 ml-2">
                         <button
                             onClick={toggleTheme}
@@ -61,18 +79,59 @@ const Navbar = () => {
                         >
                             {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
                         </button>
-                        <Link
-                            to="/login"
-                            className="text-sm font-medium text-foreground hover:text-primary px-5 py-2 rounded-full bg-white/5 border border-white/10 hover:border-primary/30 hover:bg-primary/5 transition-all duration-300 no-underline"
-                        >
-                            Log in
-                        </Link>
-                        <Link
-                            to="/register"
-                            className="px-6 py-2.5 bg-primary/20 backdrop-blur-md text-primary border border-primary/40 rounded-full text-sm font-bold hover:bg-primary/30 hover:border-primary/60 transition-all duration-300 shadow-lg shadow-primary/10 no-underline"
-                        >
-                            Get Started
-                        </Link>
+
+                        {user ? (
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" className="relative h-10 w-10 rounded-full bg-primary/10 border border-primary/20 p-0 overflow-hidden">
+                                        <div className="flex h-full w-full items-center justify-center text-primary font-bold">
+                                            {user.name?.charAt(0).toUpperCase() || <User size={20} />}
+                                        </div>
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent className="w-56" align="end" forceMount>
+                                    <DropdownMenuLabel className="font-normal">
+                                        <div className="flex flex-col space-y-1">
+                                            <p className="text-sm font-medium leading-none">{user.name}</p>
+                                            <p className="text-xs leading-none text-muted-foreground">
+                                                {user.email}
+                                            </p>
+                                        </div>
+                                    </DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem asChild>
+                                        <Link to="/dashboard" className="cursor-pointer w-full flex items-center">
+                                            <LayoutDashboard className="mr-2 h-4 w-4" />
+                                            <span>Dashboard</span>
+                                        </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem className="cursor-not-allowed opacity-50">
+                                        <Settings className="mr-2 h-4 w-4" />
+                                        <span>Settings</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive cursor-pointer">
+                                        <LogOut className="mr-2 h-4 w-4" />
+                                        <span>Log out</span>
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        ) : (
+                            <>
+                                <Link
+                                    to="/login"
+                                    className="text-sm font-medium text-foreground hover:text-primary px-5 py-2 rounded-full bg-white/5 border border-white/10 hover:border-primary/30 hover:bg-primary/5 transition-all duration-300 no-underline"
+                                >
+                                    Log in
+                                </Link>
+                                <Link
+                                    to="/register"
+                                    className="px-6 py-2.5 bg-primary/20 backdrop-blur-md text-primary border border-primary/40 rounded-full text-sm font-bold hover:bg-primary/30 hover:border-primary/60 transition-all duration-300 shadow-lg shadow-primary/10 no-underline"
+                                >
+                                    Get Started
+                                </Link>
+                            </>
+                        )}
                     </div>
                 </div>
 
@@ -95,30 +154,56 @@ const Navbar = () => {
                         className="md:hidden bg-background/95 backdrop-blur-lg border-b border-white/10 overflow-hidden"
                     >
                         <div className="container mx-auto px-6 py-6 flex flex-col gap-4">
-                            {navLinks.map((link) => (
-                                <a
-                                    key={link.name}
-                                    href={link.href}
-                                    onClick={() => setIsMobileMenuOpen(false)}
-                                    className="text-lg font-medium text-foreground py-2 border-b border-white/5"
-                                >
-                                    {link.name}
-                                </a>
-                            ))}
-                            <div className="flex flex-col gap-4 pt-4">
-                                <Link
-                                    to="/login"
-                                    className="text-center py-3 text-foreground font-medium border border-white/10 rounded-xl"
-                                >
-                                    Log in
-                                </Link>
-                                <Link
-                                    to="/register"
-                                    className="text-center py-3 bg-primary text-primary-foreground font-bold rounded-xl shadow-lg shadow-primary/20"
-                                >
-                                    Get Started
-                                </Link>
-                            </div>
+                            {user ? (
+                                <>
+                                    <div className="px-2 py-3 border-b border-white/5">
+                                        <p className="text-sm font-medium text-foreground">{user.name}</p>
+                                        <p className="text-xs text-muted-foreground">{user.email}</p>
+                                    </div>
+                                    <Link
+                                        to="/dashboard"
+                                        onClick={() => setIsMobileMenuOpen(false)}
+                                        className="text-lg font-medium text-foreground py-2 border-b border-white/5 flex items-center"
+                                    >
+                                        <LayoutDashboard className="mr-3 h-5 w-5" />
+                                        Dashboard
+                                    </Link>
+                                    <button
+                                        onClick={handleLogout}
+                                        className="text-lg font-medium text-destructive py-2 border-b border-white/5 flex items-center text-left"
+                                    >
+                                        <LogOut className="mr-3 h-5 w-5" />
+                                        Log out
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    {publicLinks.map((link) => (
+                                        <a
+                                            key={link.name}
+                                            href={link.href}
+                                            onClick={() => setIsMobileMenuOpen(false)}
+                                            className="text-lg font-medium text-foreground py-2 border-b border-white/5"
+                                        >
+                                            {link.name}
+                                        </a>
+                                    ))}
+                                    <div className="flex flex-col gap-4 pt-4">
+                                        <Link
+                                            to="/login"
+                                            className="text-center py-3 text-foreground font-medium border border-white/10 rounded-xl"
+                                        >
+                                            Log in
+                                        </Link>
+                                        <Link
+                                            to="/register"
+                                            className="text-center py-3 bg-primary text-primary-foreground font-bold rounded-xl shadow-lg shadow-primary/20"
+                                        >
+                                            Get Started
+                                        </Link>
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </motion.div>
                 )}
