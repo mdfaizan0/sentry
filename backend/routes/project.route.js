@@ -8,7 +8,7 @@ const router = express.Router()
 router.use(protect)
 
 router.get("/", listProjects)
-router.get("/:projectId", getOneProject)
+router.get("/:projectId", checkProjectAccess, getOneProject)
 router.post("/", createProject)
 router.put("/:projectId", checkProjectAccess, updateProject)
 router.delete("/:projectId", checkProjectAccess, deleteProject)

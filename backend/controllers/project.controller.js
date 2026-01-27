@@ -6,7 +6,8 @@ import { sendInviteEmail } from "../utils/email/sendInviteEmail.js";
 
 export async function listProjects(req, res) {
     try {
-        const projects = await Project.find({ owner: req.user.id })
+        const projects = await Project.find({ $or: [{ owner: req.user.id }, { members: { $in: [req.user.id] } }] })
+
         return res.status(200).json({ projects, success: true })
     } catch (error) {
         return res.status(500).json({ message: error.message, success: false })
@@ -92,7 +93,7 @@ export async function addMember(req, res) {
         }
 
         project.members.push(memberId)
-        await project.save().populate("members")
+        await project.save()
         return res.status(200).json({ project, success: true })
     } catch (error) {
         return res.status(500).json({ message: error.message, success: false })
