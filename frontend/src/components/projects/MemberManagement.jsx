@@ -199,38 +199,70 @@ const MemberManagement = ({ projectId, members, ownerId, isOwner, onRefresh }) =
                 </div>
 
                 {isOwner && (
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                            <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground/60">Pending Invites ({invites.length})</h3>
-                            {isFetchingInvites && <Loader2 size={14} className="animate-spin text-muted-foreground" />}
-                        </div>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {/* Pending Invites */}
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground/60">Pending Invites ({invites.filter(i => i.status === "pending").length})</h3>
+                                {isFetchingInvites && <Loader2 size={14} className="animate-spin text-muted-foreground" />}
+                            </div>
 
-                        {invites.length > 0 ? (
-                            <div className="bg-card border border-white/5 rounded-xl overflow-hidden">
-                                <div className="divide-y divide-white/5">
-                                    {invites.map((invite) => (
-                                        <div key={invite._id} className="p-4 flex items-center justify-between group hover:bg-white/5 transition-colors">
-                                            <div className="flex items-center gap-4">
-                                                <div className="h-10 w-10 rounded-full bg-white/5 border border-white/5 flex items-center justify-center text-muted-foreground">
-                                                    <Mail size={18} />
-                                                </div>
-                                                <div>
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="font-medium text-foreground">{invite.email}</span>
-                                                        <Badge variant="secondary" className="text-[10px] bg-white/5 text-muted-foreground border-white/10 px-1.5 py-0 h-4">
-                                                            Pending
-                                                        </Badge>
+                            {invites.filter(i => i.status === "pending").length > 0 ? (
+                                <div className="bg-card border border-white/5 rounded-xl overflow-hidden">
+                                    <div className="divide-y divide-white/5">
+                                        {invites.filter(i => i.status === "pending").map((invite) => (
+                                            <div key={invite._id} className="p-4 flex items-center justify-between group hover:bg-white/5 transition-colors">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="h-10 w-10 rounded-full bg-white/5 border border-white/5 flex items-center justify-center text-muted-foreground">
+                                                        <Mail size={18} />
                                                     </div>
-                                                    <span className="text-xs text-muted-foreground">Expires: {new Date(invite.expiresAt).toLocaleDateString()}</span>
+                                                    <div>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="font-medium text-foreground">{invite.email}</span>
+                                                            <Badge variant="secondary" className="text-[10px] bg-yellow-500/10 text-yellow-500 border-yellow-500/20 px-1.5 py-0 h-4">
+                                                                Pending
+                                                            </Badge>
+                                                        </div>
+                                                        <span className="text-xs text-muted-foreground">Expires: {new Date(invite.expiresAt).toLocaleDateString()}</span>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
-                        ) : (
-                            <div className="h-24 border border-dashed border-white/10 rounded-xl flex flex-col items-center justify-center text-center p-4">
-                                <p className="text-xs text-muted-foreground">No pending invitations</p>
+                            ) : (
+                                <div className="h-24 border border-dashed border-white/10 rounded-xl flex flex-col items-center justify-center text-center p-4">
+                                    <p className="text-xs text-muted-foreground">No pending invitations</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Rejected Invites (Last 3 Days) */}
+                        {invites.filter(i => i.status === "rejected" && (new Date() - new Date(i.updatedAt) < 3 * 24 * 60 * 60 * 1000)).length > 0 && (
+                            <div className="space-y-4">
+                                <h3 className="text-sm font-bold uppercase tracking-widest text-muted-foreground/60">Recently Rejected</h3>
+                                <div className="bg-card border border-white/5 rounded-xl overflow-hidden">
+                                    <div className="divide-y divide-white/5">
+                                        {invites.filter(i => i.status === "rejected" && (new Date() - new Date(i.updatedAt) < 3 * 24 * 60 * 60 * 1000)).map((invite) => (
+                                            <div key={invite._id} className="p-4 flex items-center justify-between group hover:bg-white/5 transition-colors">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="h-10 w-10 rounded-full bg-rose-500/10 border border-rose-500/10 flex items-center justify-center text-rose-500">
+                                                        <XCircle size={18} />
+                                                    </div>
+                                                    <div>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="font-medium text-foreground">{invite.email}</span>
+                                                            <Badge variant="secondary" className="text-[10px] bg-rose-500/10 text-rose-500 border-rose-500/20 px-1.5 py-0 h-4">
+                                                                Rejected
+                                                            </Badge>
+                                                        </div>
+                                                        <span className="text-xs text-muted-foreground">Rejected on {new Date(invite.updatedAt).toLocaleDateString()}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
                         )}
                     </div>

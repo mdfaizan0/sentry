@@ -35,22 +35,22 @@ export const removeMember = async (id, memberId) => {
     return data.project || null
 }
 
-export const inviteMember = async (id, email, expiryHours) => {
-    const { data } = await client.post(`/projects/${id}/invite-member`, { email, expiryHours })
+export const inviteMember = async (projectId, email, expiryHours) => {
+    const { data } = await client.post(`/invites/add/${projectId}`, { email, expiryHours })
     return data.message
 }
 
 export const acceptInvite = async (token) => {
-    const { data } = await client.post(`/projects/invite/accept?token=${token}`)
+    const { data } = await client.patch(`/invites/accept/${token}`)
     return data.message
 }
 
 export const rejectInvite = async (token) => {
-    const { data } = await client.post(`/projects/invite/reject?token=${token}`)
+    const { data } = await client.patch(`/invites/reject/${token}`)
     return data.message
 }
 
 export const getAllInvitesByProjectId = async (projectId) => {
-    const { data } = await client.get(`/projects/invites/all/${projectId}`)
+    const { data } = await client.get(`/invites/all/${projectId}`)
     return data.invites || []
 }

@@ -7,6 +7,7 @@ import projectRouter from "./routes/project.route.js"
 import ticketRouter from "./routes/ticket.route.js"
 import commentRouter from "./routes/comment.route.js"
 import userRouter from "./routes/user.route.js"
+import inviteRouter from "./routes/invite.route.js"
 import { errorHandler } from "./middlewares/errorHandler.js"
 
 dotenv.config()
@@ -22,6 +23,7 @@ app.use("/api/projects", projectRouter)
 app.use("/api/tickets", ticketRouter)
 app.use("/api/comments", commentRouter)
 app.use("/api/users", userRouter)
+app.use("/api/invites", inviteRouter)
 
 
 app.get("/health", (req, res) => {
