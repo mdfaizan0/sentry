@@ -1,7 +1,9 @@
+import { useState } from "react"
 import TicketCard from "./TicketCard"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Card, CardContent } from "@/components/ui/card"
 import { Ticket } from "lucide-react"
+import TicketDetailModal from "./TicketDetailModal"
 
 export const TicketSkeleton = () => (
     <Card className="bg-card/40 border-white/5 shadow-none overflow-hidden relative">
@@ -26,7 +28,15 @@ export const TicketSkeleton = () => (
     </Card>
 )
 
-const TicketList = ({ tickets, isLoading }) => {
+const TicketList = ({ tickets, isLoading, projectId, isOwner, onRefresh }) => {
+    const [selectedTicket, setSelectedTicket] = useState(null)
+    const [isDetailOpen, setIsDetailOpen] = useState(false)
+
+    const handleTicketClick = (ticket) => {
+        setSelectedTicket(ticket)
+        setIsDetailOpen(true)
+    }
+
     if (isLoading) {
         return (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -52,11 +62,28 @@ const TicketList = ({ tickets, isLoading }) => {
     }
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {tickets.map((ticket) => (
-                <TicketCard key={ticket._id} ticket={ticket} />
-            ))}
-        </div>
+        <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {tickets.map((ticket) => (
+                    <TicketCard
+                        key={ticket._id}
+                        ticket={ticket}
+                        onClick={handleTicketClick}
+                    />
+                ))}
+            </div>
+
+            {selectedTicket && (
+                <TicketDetailModal
+                    open={isDetailOpen}
+                    onOpenChange={setIsDetailOpen}
+                    ticketId={selectedTicket._id}
+                    projectId={projectId}
+                    isOwner={isOwner}
+                    onSuccess={onRefresh}
+                />
+            )}
+        </>
     )
 }
 

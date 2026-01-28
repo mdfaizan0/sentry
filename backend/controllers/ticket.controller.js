@@ -42,13 +42,13 @@ export async function listTicketsByProject(req, res) {
 export async function getOneTicket(req, res) {
     const { projectId, ticketId } = req.params
     try {
-        const ticket = await Ticket.findById(ticketId).populate("assignee")
+        const ticket = await Ticket.findById(ticketId).populate("assignee").populate("projectId")
 
         if (!ticket) {
             return res.status(404).json({ message: "Ticket not found", success: false })
         }
 
-        if (ticket.projectId.toString() !== projectId) {
+        if (ticket.projectId._id.toString() !== projectId) {
             return res.status(400).json({ message: "Ticket does not belong to this project" })
         }
 
@@ -60,34 +60,39 @@ export async function getOneTicket(req, res) {
 }
 
 export async function updateTicket(req, res) {
-    const { projectId, ticketId } = req.params
-    const { title, description, priority, status } = req.body
-
-    if (!title && !description && !priority && !status) {
-        return res.status(400).json({ message: "Title, description, priority or status is required", success: false })
-    }
-
-    let updates = {}
-    if (title) updates.title = title
-    if (description) updates.description = description
-    if (priority) updates.priority = priority
-    if (status) updates.status = status
+    const { projectId, ticketId } = req.params;
+    const { title, description, priority, status } = req.body;
 
     try {
-        const updatedTicket = await Ticket.findByIdAndUpdate(ticketId, updates, { new: true })
+        const ticket = await Ticket.findOne({ _id: ticketId, projectId }).populate("projectId");
 
-        if (!updatedTicket) {
-            return res.status(404).json({ message: "Ticket not found", success: false })
+        if (!ticket) {
+            return res.status(404).json({ message: "Ticket not found", success: false });
         }
 
-        if (updatedTicket.projectId.toString() !== projectId) {
-            return res.status(400).json({ message: "Ticket does not belong to this project" })
+        const isProjectOwner = ticket.projectId.owner.toString() === req.user.id;
+        const isTicketAssignee = ticket.assignee?.toString() === req.user.id;
+
+        if (!isProjectOwner && !isTicketAssignee) {
+            return res.status(403).json({ message: "You are not authorized to update this ticket", success: false });
         }
 
-        return res.status(200).json({ message: "Ticket updated successfully", success: true, ticket: updatedTicket })
+        if (title) ticket.title = title;
+        if (description) ticket.description = description;
+        if (priority) ticket.priority = priority;
+        if (status) ticket.status = status;
+
+        const updatedTicket = await ticket.save();
+
+        return res.status(200).json({
+            message: "Ticket updated successfully",
+            success: true,
+            ticket: updatedTicket
+        });
+
     } catch (error) {
-        console.error("Failed to update a ticket", error.message)
-        return res.status(500).json({ message: "Failed to update ticket", success: false })
+        console.error("Error:", error.message);
+        return res.status(500).json({ message: "Server error", success: false });
     }
 }
 
@@ -95,17 +100,24 @@ export async function deleteTicket(req, res) {
     const { projectId, ticketId } = req.params
     try {
 
-        const deletedTicket = await Ticket.findByIdAndDelete(ticketId)
+        const ticket = await Ticket.findOne({ _id: ticketId, projectId }).populate("projectId")
 
-        if (!deletedTicket) {
+        if (!ticket) {
             return res.status(404).json({ message: "Ticket not found", success: false })
         }
 
-        if (deletedTicket.projectId.toString() !== projectId) {
+        if (ticket.projectId._id.toString() !== projectId) {
             return res.status(400).json({ message: "Ticket does not belong to this project" })
         }
 
-        await Comment.deleteMany({ ticketId })
+        const isProjectOwner = ticket.projectId.owner.toString() === req.user.id
+
+        if (!isProjectOwner) {
+            return res.status(403).json({ message: "You are not authorized to delete this ticket", success: false })
+        }
+
+        await Comment.deleteMany({ ticketId: ticket._id })
+        const deletedTicket = await ticket.deleteOne()
 
         return res.status(200).json({ message: "Ticket deleted successfully", success: true, ticket: deletedTicket })
     } catch (error) {
@@ -153,5 +165,78 @@ export async function assignTicket(req, res) {
     } catch (error) {
         console.error("Failed to assign a ticket", error.message)
         return res.status(500).json({ message: "Failed to assign ticket", success: false })
+    }
+}
+
+export async function unassignTicket(req, res) {
+    const { ticketId } = req.params
+    const project = req.project
+
+    try {
+        const ticket = await Ticket.findById(ticketId).populate("assignee")
+
+        if (!ticket) {
+            return res.status(404).json({ message: "Ticket not found", success: false })
+        }
+
+        if (!ticket.assignee) {
+            return res.status(400).json({ message: "Ticket is not assigned to anyone", success: false })
+        }
+
+        const isOwner = project.owner.toString() === req.user.id
+
+        if (!isOwner) {
+            return res.status(403).json({ message: "You are not authorized to unassign this ticket", success: false })
+        }
+
+        ticket.assignee = null
+        await ticket.save()
+
+        return res.status(200).json({ message: "Ticket unassigned successfully", success: true, ticket })
+    } catch (error) {
+        console.error("Failed to unassign a ticket", error.message)
+        return res.status(500).json({ message: "Failed to unassign ticket", success: false })
+    }
+}
+
+export async function changeAssignee(req, res) {
+    const { ticketId } = req.params
+    const { assigneeId } = req.body
+    const project = req.project
+
+    try {
+        const user = await User.findById(assigneeId)
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found", success: false })
+        }
+
+        const ticket = await Ticket.findById(ticketId).populate("assignee")
+
+        if (!ticket) {
+            return res.status(404).json({ message: "Ticket not found", success: false })
+        }
+
+        if (!ticket.assignee) {
+            return res.status(400).json({ message: "Ticket is not assigned to anyone", success: false })
+        }
+
+        const isOwner = project.owner.toString() === req.user.id
+
+        if (!isOwner) {
+            return res.status(403).json({ message: "You are not authorized to change the assignee of this ticket", success: false })
+        }
+
+        if (!project.members.includes(assigneeId)) {
+            return res.status(403).json({ message: "Assignee has not been included in this project, add them into the project, then assign the ticket", success: false })
+        }
+
+        ticket.assignee = assigneeId
+        await ticket.save()
+
+        return res.status(200).json({ message: "Ticket assignee changed successfully", success: true, ticket })
+    } catch (error) {
+        console.error("Failed to change the assignee of a ticket", error.message)
+        return res.status(500).json({ message: "Failed to change the assignee of ticket", success: false })
     }
 }

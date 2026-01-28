@@ -45,7 +45,7 @@ const formatDate = (dateString) => {
     }).format(new Date(dateString))
 }
 
-const TicketCard = ({ ticket }) => {
+const TicketCard = ({ ticket, onClick }) => {
     const { title, description, status, priority, assignee, createdAt } = ticket
 
     const StatusIcon = statusConfig[status]?.icon || Circle
@@ -58,7 +58,10 @@ const TicketCard = ({ ticket }) => {
     }
 
     return (
-        <Card className="group bg-card/40 border-white/5 hover:border-white/10 transition-all duration-300 shadow-none overflow-hidden relative">
+        <Card
+            onClick={() => onClick?.(ticket)}
+            className="group bg-card/40 border-white/5 hover:border-primary/30 hover:bg-primary/5 transition-all duration-300 shadow-none overflow-hidden relative cursor-pointer active:scale-[0.98]"
+        >
             {/* Priority Sidebar Indicator */}
             <div className={cn("absolute left-0 top-0 bottom-0 w-1", currentPriority.color)} />
 

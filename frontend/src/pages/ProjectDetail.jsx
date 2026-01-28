@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { getOneProject } from "@/api/projects.api"
 import { listAllTickets } from "@/api/tickets.api"
+import { useAuth } from "@/contexts/auth/useAuth"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -14,6 +15,7 @@ import CreateTicketModal from "@/components/projects/CreateTicketModal"
 function ProjectDetail() {
     const { projectId } = useParams()
     const navigate = useNavigate()
+    const { user } = useAuth()
     const [project, setProject] = useState(null)
     const [isLoading, setIsLoading] = useState(true)
     const [tickets, setTickets] = useState([])
@@ -123,7 +125,13 @@ function ProjectDetail() {
                                 Create Ticket
                             </Button>
                         </div>
-                        <TicketList tickets={tickets} isLoading={isTicketsLoading} />
+                        <TicketList
+                            tickets={tickets}
+                            isLoading={isTicketsLoading}
+                            projectId={projectId}
+                            isOwner={project.owner?._id === user?.id}
+                            onRefresh={fetchTickets}
+                        />
                     </div>
                 </TabsContent>
 
