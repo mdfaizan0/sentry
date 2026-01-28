@@ -6,8 +6,10 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ShieldCheck, Users, Ticket, Activity as ActivityIcon } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { ShieldCheck, Users, Ticket, Activity as ActivityIcon, Plus } from "lucide-react"
 import TicketList from "@/components/projects/TicketList"
+import CreateTicketModal from "@/components/projects/CreateTicketModal"
 
 function ProjectDetail() {
     const { projectId } = useParams()
@@ -16,6 +18,7 @@ function ProjectDetail() {
     const [isLoading, setIsLoading] = useState(true)
     const [tickets, setTickets] = useState([])
     const [isTicketsLoading, setIsTicketsLoading] = useState(true)
+    const [isCreateTicketOpen, setIsCreateTicketOpen] = useState(false)
 
     const fetchProject = useCallback(async () => {
         try {
@@ -112,6 +115,13 @@ function ProjectDetail() {
                     <div className="space-y-6">
                         <div className="flex items-center justify-between">
                             <h2 className="text-xl font-semibold">Project Tickets</h2>
+                            <Button
+                                onClick={() => setIsCreateTicketOpen(true)}
+                                className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                            >
+                                <Plus size={16} className="mr-2" />
+                                Create Ticket
+                            </Button>
                         </div>
                         <TicketList tickets={tickets} isLoading={isTicketsLoading} />
                     </div>
@@ -131,6 +141,13 @@ function ProjectDetail() {
                     />
                 </TabsContent>
             </Tabs>
+
+            <CreateTicketModal
+                open={isCreateTicketOpen}
+                onOpenChange={setIsCreateTicketOpen}
+                projectId={projectId}
+                onSuccess={fetchTickets}
+            />
         </div>
     )
 }
