@@ -1,17 +1,21 @@
 import { useEffect, useState, useCallback } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { getOneProject } from "@/api/projects.api"
+import { listAllTickets } from "@/api/tickets.api"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ShieldCheck, Users, Ticket, Activity as ActivityIcon } from "lucide-react"
+import TicketList from "@/components/projects/TicketList"
 
 function ProjectDetail() {
     const { projectId } = useParams()
     const navigate = useNavigate()
     const [project, setProject] = useState(null)
     const [isLoading, setIsLoading] = useState(true)
+    const [tickets, setTickets] = useState([])
+    const [isTicketsLoading, setIsTicketsLoading] = useState(true)
 
     const fetchProject = useCallback(async () => {
         try {
@@ -30,9 +34,22 @@ function ProjectDetail() {
         }
     }, [projectId, navigate])
 
+    const fetchTickets = useCallback(async () => {
+        try {
+            setIsTicketsLoading(true)
+            const data = await listAllTickets(projectId)
+            setTickets(data)
+        } catch (error) {
+            console.error("Failed to fetch tickets:", error)
+        } finally {
+            setIsTicketsLoading(false)
+        }
+    }, [projectId])
+
     useEffect(() => {
         fetchProject()
-    }, [fetchProject])
+        fetchTickets()
+    }, [fetchProject, fetchTickets])
 
     if (isLoading) {
         return (
@@ -92,10 +109,12 @@ function ProjectDetail() {
                 </TabsList>
 
                 <TabsContent value="tickets" className="outline-none focus:ring-0">
-                    <PlaceholderSection
-                        title="Project Tickets"
-                        description="View and manage all issues, tasks, and bugs for this project. This feature will be implemented in the next phase."
-                    />
+                    <div className="space-y-6">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-xl font-semibold">Project Tickets</h2>
+                        </div>
+                        <TicketList tickets={tickets} isLoading={isTicketsLoading} />
+                    </div>
                 </TabsContent>
 
                 <TabsContent value="members" className="outline-none focus:ring-0">

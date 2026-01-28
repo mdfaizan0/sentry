@@ -1,15 +1,20 @@
 import { Link } from "react-router-dom"
 import { Card, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Calendar, Users, Crown } from "lucide-react"
-import { motion } from "framer-motion"
+import { Calendar, Users, Crown, Info, Clock, Hash } from "lucide-react"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
-const formatDate = (dateString) => {
-    return new Intl.DateTimeFormat('en-US', {
+const formatDate = (dateString, includeTime = false) => {
+    const options = {
         month: 'short',
         day: 'numeric',
         year: 'numeric'
-    }).format(new Date(dateString))
+    }
+    if (includeTime) {
+        options.hour = '2-digit'
+        options.minute = '2-digit'
+    }
+    return new Intl.DateTimeFormat('en-US', options).format(new Date(dateString))
 }
 
 export const ProjectSkeleton = () => (
@@ -30,39 +35,68 @@ const ProjectCard = ({ project, isLoading, isOwner }) => {
     if (isLoading) return <ProjectSkeleton />
 
     return (
-        <Link
-            to={`/project/${project._id}`}
-            className="block no-underline group"
-        >
-            <Card className="h-[180px] bg-card/50 border-white/5 hover:border-primary/30 hover:bg-primary/5 transition-all duration-300 group-hover:shadow-lg group-hover:shadow-primary/5 flex flex-col relative overflow-hidden">
-                {isOwner && (
-                    <div className="absolute top-0 right-0 px-2 py-1 bg-primary/10 border-l border-b border-primary/20 rounded-bl-lg flex items-center gap-1">
-                        <Crown size={10} className="text-primary" />
-                        <span className="text-[10px] font-bold text-primary uppercase tracking-wider">Owner</span>
+        <TooltipProvider delayDuration={300}>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <Link
+                        to={`/project/${project._id}`}
+                        className="block no-underline group"
+                    >
+                        <Card className="h-[180px] bg-card/50 border-white/5 hover:border-primary/30 hover:bg-primary/5 transition-all duration-300 group-hover:shadow-lg group-hover:shadow-primary/5 flex flex-col relative overflow-hidden">
+                            {isOwner && (
+                                <div className="absolute top-0 right-0 px-2 py-1 bg-primary/10 border-l border-b border-primary/20 rounded-bl-lg flex items-center gap-1">
+                                    <Crown size={10} className="text-primary" />
+                                    <span className="text-[10px] font-bold text-primary uppercase tracking-wider">Owner</span>
+                                </div>
+                            )}
+                            <CardHeader className="p-4 pb-2">
+                                <CardTitle className="text-lg group-hover:text-primary transition-colors truncate pr-12">
+                                    {project.title}
+                                </CardTitle>
+                                <CardDescription className="line-clamp-3 mt-2 text-xs leading-relaxed">
+                                    {project.description || "No description provided."}
+                                </CardDescription>
+                            </CardHeader>
+                            <CardFooter className="p-4 pt-0 mt-auto flex items-center gap-4 text-[10px] text-muted-foreground font-medium">
+                                <div className="flex items-center gap-1.5 bg-white/5 px-2 py-1 rounded-md border border-white/5">
+                                    <Users size={12} className="text-primary/70" />
+                                    <span>
+                                        {project.members?.length || 0} {project.members?.length === 1 ? 'Member' : 'Members'}
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-1.5 bg-white/5 px-2 py-1 rounded-md border border-white/5">
+                                    <Calendar size={12} className="text-primary/70" />
+                                    <span>{formatDate(project.createdAt)}</span>
+                                </div>
+                            </CardFooter>
+                        </Card>
+                    </Link>
+                </TooltipTrigger>
+                <TooltipContent side="right" align="start" className="max-w-[300px] p-4 bg-popover border-white/10 shadow-2xl space-y-3 z-50">
+                    <div className="space-y-1.5">
+                        <div className="flex items-center gap-2 text-primary">
+                            <Info size={14} />
+                            <span className="text-xs font-bold uppercase tracking-wider">Project Details</span>
+                        </div>
+                        <p className="text-sm font-semibold leading-none">{project.title}</p>
+                        <p className="text-xs text-muted-foreground leading-relaxed">
+                            {project.description || "No description provided."}
+                        </p>
                     </div>
-                )}
-                <CardHeader className="p-4 pb-2">
-                    <CardTitle className="text-lg group-hover:text-primary transition-colors truncate pr-12">
-                        {project.title}
-                    </CardTitle>
-                    <CardDescription className="line-clamp-3 mt-2 text-xs leading-relaxed">
-                        {project.description || "No description provided."}
-                    </CardDescription>
-                </CardHeader>
-                <CardFooter className="p-4 pt-0 mt-auto flex items-center gap-4 text-[10px] text-muted-foreground font-medium">
-                    <div className="flex items-center gap-1.5 bg-white/5 px-2 py-1 rounded-md border border-white/5">
-                        <Users size={12} className="text-primary/70" />
-                        <span>
-                            {project.members?.length || 0} {project.members?.length === 1 ? 'Member' : 'Members'}
-                        </span>
+
+                    <div className="space-y-2 pt-2 border-t border-white/5">
+                        <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                            <Clock size={12} className="text-primary/70" />
+                            <span>Last updated: {formatDate(project.updatedAt || project.createdAt, true)}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                            <Hash size={12} className="text-primary/70" />
+                            <span className="font-mono">ID: {project._id}</span>
+                        </div>
                     </div>
-                    <div className="flex items-center gap-1.5 bg-white/5 px-2 py-1 rounded-md border border-white/5">
-                        <Calendar size={12} className="text-primary/70" />
-                        <span>{formatDate(project.createdAt)}</span>
-                    </div>
-                </CardFooter>
-            </Card>
-        </Link>
+                </TooltipContent>
+            </Tooltip>
+        </TooltipProvider>
     )
 }
 

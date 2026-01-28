@@ -15,13 +15,13 @@ export async function listProjects(req, res) {
 }
 
 export async function getOneProject(req, res) {
-    const { id } = req.params
+    const { projectId } = req.params
 
-    if (!id) {
+    if (!projectId) {
         return res.status(400).json({ message: "Invalid Project ID", success: false })
     }
     try {
-        const project = await Project.findById(id)
+        const project = await Project.findById(projectId).populate("owner").populate("members")
         if (!project) {
             return res.status(404).json({ message: "Project not found", success: false })
         }
