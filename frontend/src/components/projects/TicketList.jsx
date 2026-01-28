@@ -28,7 +28,7 @@ export const TicketSkeleton = () => (
     </Card>
 )
 
-const TicketList = ({ tickets, isLoading, projectId, isOwner, onRefresh }) => {
+const TicketList = ({ tickets, isLoading, projectId, isOwner, members, onRefresh }) => {
     const [selectedTicket, setSelectedTicket] = useState(null)
     const [isDetailOpen, setIsDetailOpen] = useState(false)
 
@@ -80,6 +80,7 @@ const TicketList = ({ tickets, isLoading, projectId, isOwner, onRefresh }) => {
                     ticketId={selectedTicket._id}
                     projectId={projectId}
                     isOwner={isOwner}
+                    members={members}
                     onSuccess={onRefresh}
                 />
             )}

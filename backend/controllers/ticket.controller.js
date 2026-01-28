@@ -149,6 +149,8 @@ export async function assignTicket(req, res) {
         }
 
         if (!project.members.includes(assigneeId)) {
+            console.log("project.members", project.members)
+            console.log("assigneeId", assigneeId)
             return res.status(403).json({ message: "Assignee has not been included in this project, add them into the project, then assign the ticket", success: false })
         }
 

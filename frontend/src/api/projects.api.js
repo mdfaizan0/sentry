@@ -49,3 +49,8 @@ export const rejectInvite = async (token) => {
     const { data } = await client.post(`/projects/invite/reject?token=${token}`)
     return data.message
 }
+
+export const getAllInvitesByProjectId = async (projectId) => {
+    const { data } = await client.get(`/projects/invites/all/${projectId}`)
+    return data.invites || []
+}

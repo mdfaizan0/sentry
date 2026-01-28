@@ -7,13 +7,14 @@ dotenv.config()
 export const sendInviteEmail = async (project, email, token, expiryHours) => {
     try {
         const transporter = nodemailer.createTransport({
-            host: 'gmail',
-            port: 587,
+            service: 'gmail',
             auth: {
                 user: 'webdfaizan@gmail.com',
                 pass: process.env.GOOGLE_APP_PASSWORD
             }
         });
+
+        console.log(process.env.FRONTEND_URL)
 
         const inviteLink = `${process.env.FRONTEND_URL}/invite/accept?token=${token}`
         const rejectLink = `${process.env.FRONTEND_URL}/invite/reject?token=${token}`
@@ -33,9 +34,9 @@ export const sendInviteEmail = async (project, email, token, expiryHours) => {
             subject: `Invitation to join a project`,
             html: emailTemplate
         }
+        console.log("mailOptions", mailOptions)
 
         const info = await transporter.sendMail(mailOptions)
-
         if (info.accepted.length > 0) {
             console.log("Invite email sent successfully to:", email)
         } else {

@@ -47,14 +47,28 @@ export async function createProject(req, res) {
 }
 
 export async function updateProject(req, res) {
-    const { id } = req.params
+    const { projectId } = req.params
+    const { title, description } = req.body
 
     if (!title && !description) {
         return res.status(400).json({ message: "Nothing to update.", success: false })
     }
 
     try {
-        const project = await Project.findByIdAndUpdate(id, { title, description }, { new: true })
+        const project = await Project.findById(projectId)
+
+        if (!project) {
+            return res.status(404).json({ message: "Project not found", success: false })
+        }
+
+        if (project.owner.toString() !== req.user.id) {
+            return res.status(403).json({ message: "You are not authorized to update this project", success: false })
+        }
+
+        project.title = title || project.title
+        project.description = description || project.description
+
+        await project.save()
 
         return res.status(200).json({ project, success: true })
     } catch (error) {
@@ -63,10 +77,10 @@ export async function updateProject(req, res) {
 }
 
 export async function deleteProject(req, res) {
-    const { id } = req.params
+    const { projectId } = req.params
 
     try {
-        const project = await Project.findByIdAndDelete(id)
+        const project = await Project.findByIdAndDelete(projectId)
 
         return res.status(200).json({ project, success: true })
     } catch (error) {
@@ -94,6 +108,7 @@ export async function addMember(req, res) {
 
         project.members.push(memberId)
         await project.save()
+        await project.populate("members")
         return res.status(200).json({ project, success: true })
     } catch (error) {
         return res.status(500).json({ message: error.message, success: false })
@@ -128,6 +143,9 @@ export async function addMemberByInvite(req, res) {
         }
 
         const token = crypto.randomBytes(32).toString("hex")
+
+        // Populate owner to get the inviter's name for the email template
+        await project.populate("owner")
 
         await sendInviteEmail(project, email, token, expiryHours)
 
@@ -219,7 +237,7 @@ export async function rejectInvite(req, res) {
 
 export async function getInvites(req, res) {
     try {
-        const invites = await Invite.find({ projectId: req.params.id })
+        const invites = await Invite.find({ projectId: req.params.projectId })
         return res.status(200).json({ invites, success: true })
     } catch (error) {
         return res.status(500).json({ message: error.message, success: false })
@@ -237,7 +255,8 @@ export async function removeMember(req, res) {
         }
 
         project.members.splice(memberIndex, 1)
-        await project.save().populate("members")
+        await project.save()
+        await project.populate("members")
         return res.status(200).json({ project, success: true })
     } catch (error) {
         return res.status(500).json({ message: error.message, success: false })

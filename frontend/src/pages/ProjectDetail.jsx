@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { ShieldCheck, Users, Ticket, Activity as ActivityIcon, Plus } from "lucide-react"
 import TicketList from "@/components/projects/TicketList"
 import CreateTicketModal from "@/components/projects/CreateTicketModal"
+import MemberManagement from "@/components/projects/MemberManagement"
 
 function ProjectDetail() {
     const { projectId } = useParams()
@@ -130,15 +131,19 @@ function ProjectDetail() {
                             isLoading={isTicketsLoading}
                             projectId={projectId}
                             isOwner={project.owner?._id === user?.id}
+                            members={project.members}
                             onRefresh={fetchTickets}
                         />
                     </div>
                 </TabsContent>
 
                 <TabsContent value="members" className="outline-none focus:ring-0">
-                    <PlaceholderSection
-                        title="Team Members"
-                        description="Manage project access, invite collaborators, and assign roles. This feature will be implemented in the next phase."
+                    <MemberManagement
+                        projectId={projectId}
+                        members={project.members}
+                        ownerId={project.owner?._id}
+                        isOwner={project.owner?._id === user?.id}
+                        onRefresh={fetchProject}
                     />
                 </TabsContent>
 

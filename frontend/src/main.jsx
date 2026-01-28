@@ -15,6 +15,7 @@ const Login = lazy(() => import("./pages/Login.jsx"))
 const Register = lazy(() => import("./pages/Register.jsx"))
 const Dashboard = lazy(() => import("./pages/Dashboard.jsx"))
 const ProjectDetail = lazy(() => import("./pages/ProjectDetail.jsx"))
+const InviteHandler = lazy(() => import("./pages/InviteHandler.jsx"))
 
 const router = createBrowserRouter([
   {
@@ -25,6 +26,7 @@ const router = createBrowserRouter([
       { path: "/", element: <Suspense fallback={<Loading />}><Home /></Suspense> },
       { path: "/login", element: <Suspense fallback={<Loading />}><Login /></Suspense> },
       { path: "/register", element: <Suspense fallback={<Loading />}><Register /></Suspense> },
+      { path: "/invite/:action", element: <Suspense fallback={<Loading />}><InviteHandler /></Suspense> },
       {
         element: <ProtectedRoute />,
         children: [

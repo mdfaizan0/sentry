@@ -5,6 +5,9 @@ import { checkProjectAccess } from "../middlewares/project.middleware.js"
 
 const router = express.Router()
 
+router.get("/invite/accept", acceptInvite)
+router.get("/invite/reject", rejectInvite)
+
 router.use(protect)
 
 router.get("/", listProjects)
@@ -17,8 +20,6 @@ router.post("/:projectId/add-member", checkProjectAccess, addMember)
 router.post("/:projectId/invite-member", checkProjectAccess, addMemberByInvite)
 router.post("/:projectId/remove-member", checkProjectAccess, removeMember)
 
-router.get("/invite/accept", acceptInvite)
-router.get("/invite/reject", rejectInvite)
 router.get("/invites/all/:projectId", checkProjectAccess, getInvites)
 
 export default router

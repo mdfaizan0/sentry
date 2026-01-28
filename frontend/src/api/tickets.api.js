@@ -29,3 +29,13 @@ export const assignTicket = async (projectId, ticketId, assigneeId) => {
     const { data } = await client.patch(`/tickets/${projectId}/${ticketId}/assign`, { assigneeId })
     return data.ticket || null
 }
+
+export const unassignTicket = async (projectId, ticketId) => {
+    const { data } = await client.patch(`/tickets/${projectId}/${ticketId}/unassign`)
+    return data.ticket || null
+}
+
+export const changeAssignee = async (projectId, ticketId, assigneeId) => {
+    const { data } = await client.patch(`/tickets/${projectId}/${ticketId}/change-assignee`, { assigneeId })
+    return data.ticket || null
+}
