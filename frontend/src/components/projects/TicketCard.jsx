@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { User, Clock, AlertCircle, Circle, CheckCircle2 } from "lucide-react"
 import { cn } from "@/lib/utils"
+import getInitials from "@/lib/getInitials"
 
 const statusConfig = {
     "Open": {
@@ -51,11 +52,6 @@ const TicketCard = ({ ticket, onClick, hideStatus = false }) => {
     const StatusIcon = statusConfig[status]?.icon || Circle
     const currentStatus = statusConfig[status] || statusConfig["Open"]
     const currentPriority = priorityConfig[priority] || priorityConfig["Low"]
-
-    const getInitials = (name) => {
-        if (!name) return "?"
-        return name.split(" ").map(n => n[0]).join("").toUpperCase()
-    }
 
     return (
         <Card

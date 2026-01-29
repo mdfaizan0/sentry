@@ -1,6 +1,10 @@
 import { useState, useEffect, useCallback, useMemo } from "react"
+import { useNavigate } from "react-router-dom"
 import { getOneTicket, updateTicket, deleteTicket, assignTicket, unassignTicket, changeAssignee } from "@/api/tickets.api"
+import { getComments } from "@/api/comments.api"
 import { useAuth } from "@/contexts/auth/useAuth"
+import EditTicketModal from "./EditTicketModal"
+import CommentThread from "./CommentThread"
 import {
     Dialog,
     DialogContent,
@@ -41,7 +45,9 @@ import {
     Circle,
     CheckCircle2,
     Calendar,
-    ArrowLeft
+    ArrowLeft,
+    MessageSquare,
+    ExternalLink
 } from "lucide-react"
 import {
     Tooltip,
@@ -51,6 +57,7 @@ import {
 } from "@/components/ui/tooltip"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { Separator } from "@/components/ui/separator"
 
 const statusConfig = {
     "Open": { color: "text-sky-400 bg-sky-400/10 border-sky-400/20", icon: Circle },
@@ -64,29 +71,24 @@ const priorityConfig = {
     "High": { text: "text-rose-400", bg: "bg-rose-500/10", border: "border-rose-500/20" }
 }
 
-const TicketDetailModal = ({ open, onOpenChange, ticketId, projectId, isOwner, owner, members, onSuccess }) => {
+const TicketDetailModal = ({ open, onOpenChange, projectId, ticketId, isOwner, owner, members, onSuccess }) => {
+    const navigate = useNavigate()
     const { user } = useAuth()
     const [ticket, setTicket] = useState(null)
     const [isLoading, setIsLoading] = useState(true)
-    const [isEditing, setIsEditing] = useState(false)
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false)
     const [isDeleting, setIsDeleting] = useState(false)
     const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false)
-    const [isSubmitting, setIsSubmitting] = useState(false)
     const [isAssigning, setIsAssigning] = useState(false)
+    const [commentCount, setCommentCount] = useState(0)
+    const [recentAvatars, setRecentAvatars] = useState([])
 
-    // Form state
-    const [formData, setFormData] = useState({
-        title: "",
-        description: "",
-        status: "",
-        priority: ""
-    })
-
-    const allAssignees = useMemo(() => {
+    const allAssigneesList = useMemo(() => {
         if (!members) return []
         // Check if owner is already in members list
-        if (owner && !members.some(m => m._id === owner._id)) {
-            return [owner, ...members]
+        const ownerObj = typeof owner === 'string' ? null : owner // If it's an ID, we can't easily add it without more info, but usually it's a populated object here
+        if (ownerObj && !members.some(m => m._id === ownerObj._id)) {
+            return [ownerObj, ...members]
         }
         return members
     }, [members, owner])
@@ -99,14 +101,6 @@ const TicketDetailModal = ({ open, onOpenChange, ticketId, projectId, isOwner, o
             setIsLoading(true)
             const data = await getOneTicket(projectId, ticketId)
             setTicket(data)
-            if (data) {
-                setFormData({
-                    title: data.title,
-                    description: data.description,
-                    status: data.status,
-                    priority: data.priority
-                })
-            }
         } catch (error) {
             console.error("Failed to fetch ticket:", error)
             toast.error("Failed to load ticket details")
@@ -119,27 +113,32 @@ const TicketDetailModal = ({ open, onOpenChange, ticketId, projectId, isOwner, o
     useEffect(() => {
         if (open && ticketId) {
             fetchTicket()
-            setIsEditing(false)
+
+            // Fetch comment summary
+            getComments(ticketId).then(data => {
+                if (data.success) {
+                    setCommentCount(data.comments?.length || 0)
+                    // Get unique avatars of last 3 commenters
+                    const uniqueCommenters = []
+                    const avatars = []
+                    const sortedComments = [...data.comments].reverse()
+
+                    for (const c of sortedComments) {
+                        if (avatars.length >= 3) break
+                        if (!uniqueCommenters.includes(c.userId?._id)) {
+                            uniqueCommenters.push(c.userId?._id)
+                            avatars.push({
+                                initials: c.userId?.name?.split(" ").map(n => n[0]).join("").toUpperCase(),
+                                name: c.userId?.name
+                            })
+                        }
+                    }
+                    setRecentAvatars(avatars)
+                }
+            }).catch(e => console.error("Failed to fetch comment summary:", e))
         }
     }, [open, ticketId, fetchTicket])
 
-    const handleUpdate = async (e) => {
-        e.preventDefault()
-        if (!formData.title.trim() || !formData.description.trim()) return
-
-        try {
-            setIsSubmitting(true)
-            await updateTicket(projectId, ticketId, formData)
-            toast.success("Ticket updated successfully")
-            setIsEditing(false)
-            fetchTicket()
-            onSuccess?.()
-        } catch (error) {
-            console.error("Failed to update ticket:", error)
-        } finally {
-            setIsSubmitting(false)
-        }
-    }
 
     const handleDelete = async () => {
         try {
@@ -223,222 +222,215 @@ const TicketDetailModal = ({ open, onOpenChange, ticketId, projectId, isOwner, o
                                             {ticket.priority}
                                         </Badge>
                                     </div>
-                                    <div className="flex items-center gap-2 mt-4">
-                                        {!isEditing && (
-                                            <>
-                                                {canManageTicket && (
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        className="h-8 px-2 text-muted-foreground hover:text-foreground"
-                                                        onClick={() => setIsEditing(true)}
-                                                    >
-                                                        <Edit2 size={14} className="mr-1.5" />
-                                                        Edit
-                                                    </Button>
-                                                )}
-                                                {isOwner && (
-                                                    <Button
-                                                        variant="ghost"
-                                                        size="sm"
-                                                        className="h-8 px-2 text-rose-400 hover:text-rose-300 hover:bg-rose-400/10"
-                                                        onClick={() => setIsDeleteAlertOpen(true)}
-                                                    >
-                                                        <Trash2 size={14} className="mr-1.5" />
-                                                        Delete
-                                                    </Button>
-                                                )}
-                                            </>
+                                    <div className="flex items-center gap-2">
+                                        {canManageTicket && (
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-8 px-2 text-muted-foreground hover:text-foreground"
+                                                onClick={() => setIsEditModalOpen(true)}
+                                            >
+                                                <Edit2 size={14} className="mr-1.5" />
+                                                Edit
+                                            </Button>
+                                        )}
+                                        {isOwner && (
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                className="h-8 px-2 text-rose-400 hover:text-rose-300 hover:bg-rose-400/10"
+                                                onClick={() => setIsDeleteAlertOpen(true)}
+                                            >
+                                                <Trash2 size={14} className="mr-1.5" />
+                                                Delete
+                                            </Button>
                                         )}
                                     </div>
                                 </div>
                                 <DialogTitle className="text-2xl font-bold leading-tight">
-                                    {isEditing ? "Edit Ticket" : ticket.title}
+                                    {ticket.title}
                                 </DialogTitle>
                             </DialogHeader>
 
                             <div className="p-6 space-y-6">
-                                {isEditing ? (
-                                    <form onSubmit={handleUpdate} className="space-y-4">
-                                        <div className="grid gap-2">
-                                            <Label htmlFor="title">Title</Label>
-                                            <Input
-                                                id="title"
-                                                value={formData.title}
-                                                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                                className="bg-white/5 border-white/10"
-                                                required
-                                            />
-                                        </div>
-                                        <div className="grid gap-2">
-                                            <Label htmlFor="description">Description</Label>
-                                            <Textarea
-                                                id="description"
-                                                value={formData.description}
-                                                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                                className="bg-white/5 border-white/10 min-h-[120px]"
-                                                required
-                                            />
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="grid gap-2">
-                                                <Label>Status</Label>
-                                                <Select value={formData.status} onValueChange={(val) => setFormData({ ...formData, status: val })}>
-                                                    <SelectTrigger className="bg-white/5 border-white/10">
-                                                        <SelectValue />
-                                                    </SelectTrigger>
-                                                    <SelectContent className="bg-card border-white/10">
-                                                        <SelectItem value="Open">Open</SelectItem>
-                                                        <SelectItem value="In Progress">In Progress</SelectItem>
-                                                        <SelectItem value="Closed">Closed</SelectItem>
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
-                                            <div className="grid gap-2">
-                                                <Label>Priority</Label>
-                                                <Select value={formData.priority} onValueChange={(val) => setFormData({ ...formData, priority: val })}>
-                                                    <SelectTrigger className="bg-white/5 border-white/10">
-                                                        <SelectValue />
-                                                    </SelectTrigger>
-                                                    <SelectContent className="bg-card border-white/10">
-                                                        <SelectItem value="Low">Low</SelectItem>
-                                                        <SelectItem value="Medium">Medium</SelectItem>
-                                                        <SelectItem value="High">High</SelectItem>
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
-                                        </div>
-                                        <div className="flex justify-end gap-3 pt-4">
-                                            <Button type="button" variant="ghost" onClick={() => setIsEditing(false)}>
-                                                Cancel
-                                            </Button>
-                                            <Button type="submit" disabled={isSubmitting}>
-                                                {isSubmitting ? <Loader2 className="animate-spin" /> : "Save Changes"}
-                                            </Button>
-                                        </div>
-                                    </form>
-                                ) : (
-                                    <>
-                                        <div className="space-y-2">
-                                            <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground/60">Description</h4>
-                                            <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap">
-                                                {ticket.description}
-                                            </p>
-                                        </div>
+                                {/* Description */}
+                                <div className="space-y-4">
+                                    <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground/60">Description</h4>
+                                    <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap">
+                                        {ticket.description}
+                                    </p>
+                                </div>
 
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-6 border-t border-white/5">
-                                            <div className="space-y-3">
-                                                <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground/60">Assignee</h4>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-6 border-t border-white/5">
+                                    <div className="space-y-3">
+                                        <h4 className="text-xs font-bold uppercase tracking-widest text-muted-foreground/60">Assignee</h4>
 
-                                                <div className="flex flex-col gap-3">
-                                                    {/* Assignee Display */}
-                                                    <div className="flex items-center gap-2.5">
-                                                        <TooltipProvider>
-                                                            <Tooltip>
-                                                                <TooltipTrigger asChild>
-                                                                    <div className="h-9 w-9 rounded-full bg-primary/20 border border-primary/20 flex items-center justify-center text-xs font-bold text-primary cursor-help">
-                                                                        {ticket.assignee ? (ticket.assignee.name?.split(" ").map(n => n[0]).join("").toUpperCase() || <UserIcon size={16} />) : <UserIcon size={16} />}
-                                                                    </div>
-                                                                </TooltipTrigger>
-                                                                <TooltipContent side="bottom" className="bg-popover border-white/10 text-xs">
-                                                                    {ticket.assignee ? (
-                                                                        <div className="space-y-0.5">
-                                                                            <p className="font-bold">{ticket.assignee.name}</p>
-                                                                            <p className="text-muted-foreground">{ticket.assignee.email}</p>
-                                                                        </div>
-                                                                    ) : (
-                                                                        <p>No one is assigned to this ticket</p>
-                                                                    )}
-                                                                </TooltipContent>
-                                                            </Tooltip>
-                                                        </TooltipProvider>
-
-                                                        <div className="flex flex-col">
+                                        <div className="flex flex-col gap-3">
+                                            {/* Assignee Display */}
+                                            <div className="flex items-center gap-2.5">
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <div className="h-9 w-9 rounded-full bg-primary/20 border border-primary/20 flex items-center justify-center text-xs font-bold text-primary cursor-help">
+                                                                {ticket.assignee ? (ticket.assignee.name?.split(" ").map(n => n[0]).join("").toUpperCase() || <UserIcon size={16} />) : <UserIcon size={16} />}
+                                                            </div>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent side="bottom" className="bg-popover border-white/10 text-xs">
                                                             {ticket.assignee ? (
-                                                                <span className="text-sm font-semibold">{ticket.assignee.name}</span>
+                                                                <div className="space-y-0.5">
+                                                                    <p className="font-bold">{ticket.assignee.name}</p>
+                                                                    <p className="text-muted-foreground">{ticket.assignee.email}</p>
+                                                                </div>
                                                             ) : (
-                                                                <Badge variant="secondary" className="bg-white/5 text-muted-foreground border-white/10 text-[10px] uppercase font-bold px-1.5 py-0 h-5">
-                                                                    Unassigned
-                                                                </Badge>
+                                                                <p>No one is assigned to this ticket</p>
                                                             )}
-                                                        </div>
-                                                    </div>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
 
-                                                    {/* Assignment Controls */}
-                                                    {isOwner ? (
-                                                        <div className="flex items-center gap-2">
-                                                            <Select
-                                                                disabled={isAssigning}
-                                                                value={ticket.assignee?._id || (typeof ticket.assignee === 'string' ? ticket.assignee : "")}
-                                                                onValueChange={handleAssignmentChange}
-                                                            >
-                                                                <SelectTrigger className="h-8 bg-white/5 border-white/10 text-xs w-full max-w-[180px]">
-                                                                    <SelectValue placeholder="Assign ticket..." />
-                                                                </SelectTrigger>
-                                                                <SelectContent className="bg-card border-white/10">
-                                                                    {allAssignees?.map(member => (
-                                                                        <SelectItem key={member._id} value={member._id} className="text-xs">
-                                                                            {member.name}
-                                                                        </SelectItem>
-                                                                    ))}
-                                                                </SelectContent>
-                                                            </Select>
-
-                                                            {ticket.assignee && (
-                                                                <Button
-                                                                    variant="ghost"
-                                                                    size="sm"
-                                                                    className="h-8 px-2 text-[10px] uppercase font-bold text-muted-foreground hover:text-rose-400"
-                                                                    onClick={handleUnassignAction}
-                                                                    disabled={isAssigning}
-                                                                >
-                                                                    {isAssigning ? <Loader2 size={12} className="animate-spin" /> : "Unassign"}
-                                                                </Button>
-                                                            )}
-                                                        </div>
+                                                <div className="flex flex-col">
+                                                    {ticket.assignee ? (
+                                                        <span className="text-sm font-semibold">{ticket.assignee.name}</span>
                                                     ) : (
-                                                        <TooltipProvider>
-                                                            <Tooltip>
-                                                                <TooltipTrigger asChild>
-                                                                    <div className="w-fit">
-                                                                        <Badge variant="outline" className="text-[10px] text-muted-foreground/50 border-white/5 cursor-not-allowed">
-                                                                            Read-only
-                                                                        </Badge>
-                                                                    </div>
-                                                                </TooltipTrigger>
-                                                                <TooltipContent className="bg-popover border-white/10 text-[10px]">
-                                                                    Only project owner can reassign tickets
-                                                                </TooltipContent>
-                                                            </Tooltip>
-                                                        </TooltipProvider>
+                                                        <Badge variant="secondary" className="bg-white/5 text-muted-foreground border-white/10 text-[10px] uppercase font-bold px-1.5 py-0 h-5">
+                                                            Unassigned
+                                                        </Badge>
                                                     )}
                                                 </div>
                                             </div>
 
-                                            <div className="space-y-4 sm:pl-6 sm:border-l border-white/5">
-                                                <div className="flex items-center gap-3 text-muted-foreground group">
-                                                    <Calendar size={14} className="opacity-40 group-hover:opacity-100 transition-opacity" />
-                                                    <div className="flex flex-col">
-                                                        <span className="text-[9px] uppercase font-bold tracking-widest opacity-50">Created</span>
-                                                        <span className="text-[11px] font-medium">{formatDate(ticket.createdAt)}</span>
-                                                    </div>
+                                            {/* Assignment Controls */}
+                                            {isOwner ? (
+                                                <div className="flex items-center gap-2">
+                                                    <Select
+                                                        disabled={isAssigning}
+                                                        value={ticket.assignee?._id || (typeof ticket.assignee === 'string' ? ticket.assignee : "")}
+                                                        onValueChange={handleAssignmentChange}
+                                                    >
+                                                        <SelectTrigger className="h-8 bg-white/5 border-white/10 text-xs w-full max-w-[180px]">
+                                                            <SelectValue placeholder="Assign ticket..." />
+                                                        </SelectTrigger>
+                                                        <SelectContent className="bg-card border-white/10">
+                                                            {allAssigneesList?.map(member => (
+                                                                <SelectItem key={member._id} value={member._id} className="text-xs">
+                                                                    {member.name}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+
+                                                    {ticket.assignee && (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-8 px-2 text-[10px] uppercase font-bold text-muted-foreground hover:text-rose-400"
+                                                            onClick={handleUnassignAction}
+                                                            disabled={isAssigning}
+                                                        >
+                                                            {isAssigning ? <Loader2 size={12} className="animate-spin" /> : "Unassign"}
+                                                        </Button>
+                                                    )}
                                                 </div>
-                                                <div className="flex items-center gap-3 text-muted-foreground group">
-                                                    <Clock size={14} className="opacity-40 group-hover:opacity-100 transition-opacity" />
-                                                    <div className="flex flex-col">
-                                                        <span className="text-[9px] uppercase font-bold tracking-widest opacity-50">Last Update</span>
-                                                        <span className="text-[11px] font-medium">{formatDate(ticket.updatedAt)}</span>
-                                                    </div>
-                                                </div>
+                                            ) : (
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <div className="w-fit">
+                                                                <Badge variant="outline" className="text-[10px] text-muted-foreground/50 border-white/5 cursor-not-allowed">
+                                                                    Read-only
+                                                                </Badge>
+                                                            </div>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent className="bg-popover border-white/10 text-[10px]">
+                                                            Only project owner can reassign tickets
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-4 sm:pl-6 sm:border-l border-white/5">
+                                        <div className="flex items-center gap-3 text-muted-foreground group">
+                                            <Calendar size={14} className="opacity-40 group-hover:opacity-100 transition-opacity" />
+                                            <div className="flex flex-col">
+                                                <span className="text-[9px] uppercase font-bold tracking-widest opacity-50">Created</span>
+                                                <span className="text-[11px] font-medium">{formatDate(ticket.createdAt)}</span>
                                             </div>
                                         </div>
-                                    </>
-                                )}
+                                        <div className="flex items-center gap-3 text-muted-foreground group">
+                                            <Clock size={14} className="opacity-40 group-hover:opacity-100 transition-opacity" />
+                                            <div className="flex flex-col">
+                                                <span className="text-[9px] uppercase font-bold tracking-widest opacity-50">Last Update</span>
+                                                <span className="text-[11px] font-medium">{formatDate(ticket.updatedAt)}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Discussion Summary */}
+                            <Separator className="my-6 mx-6 border-white/5" />
+                            <div className="px-6 pb-6">
+                                <button
+                                    onClick={() => navigate(`/project/${projectId}/ticket/${ticketId}`)}
+                                    className="w-full group relative flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-primary/30 transition-all duration-300 text-left"
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                                            <MessageSquare size={18} />
+                                        </div>
+                                        <div>
+                                            <h4 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
+                                                Discussion Thread
+                                            </h4>
+                                            <p className="text-xs text-muted-foreground">
+                                                {commentCount > 0
+                                                    ? `${commentCount} ${commentCount === 1 ? 'comment' : 'comments'} shared so far`
+                                                    : 'No comments yet. Start the conversation.'
+                                                }
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-4">
+                                        {recentAvatars.length > 0 && (
+                                            <div className="flex -space-x-2 mr-2">
+                                                {recentAvatars.map((avatar, i) => (
+                                                    <div
+                                                        key={i}
+                                                        className="h-7 w-7 rounded-full border-2 border-card bg-primary/20 flex items-center justify-center text-[10px] font-bold text-primary"
+                                                        title={avatar.name}
+                                                    >
+                                                        {avatar.initials}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                        <div className="h-8 w-8 rounded-full border border-white/10 flex items-center justify-center text-muted-foreground group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary transition-all">
+                                            <ExternalLink size={14} />
+                                        </div>
+                                    </div>
+
+                                    {/* Glow effect on hover */}
+                                    <div className="absolute inset-0 rounded-xl bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity blur-xl -z-10" />
+                                </button>
                             </div>
                         </>
                     )}
                 </DialogContent>
             </Dialog>
+
+            <EditTicketModal
+                open={isEditModalOpen}
+                onOpenChange={setIsEditModalOpen}
+                projectId={projectId}
+                ticket={ticket}
+                onSuccess={() => {
+                    fetchTicket()
+                    onSuccess?.()
+                }}
+            />
 
             <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
                 <AlertDialogContent className="bg-card border-white/10">

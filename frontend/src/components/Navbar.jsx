@@ -13,6 +13,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
+import getInitials from "@/lib/getInitials"
 
 const Navbar = () => {
     const [isScrolled, setIsScrolled] = useState(false)
@@ -85,7 +86,7 @@ const Navbar = () => {
                                 <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" className="relative h-10 w-10 rounded-full bg-primary/10 border border-primary/20 p-0 overflow-hidden">
                                         <div className="flex h-full w-full items-center justify-center text-primary font-bold">
-                                            {user.name?.charAt(0).toUpperCase() || <User size={20} />}
+                                            {getInitials(user.name) || <User size={20} />}
                                         </div>
                                     </Button>
                                 </DropdownMenuTrigger>
@@ -204,6 +205,25 @@ const Navbar = () => {
                                     </div>
                                 </>
                             )}
+
+                            {/* Theme Toggle for Mobile */}
+                            <button
+                                onClick={toggleTheme}
+                                className="mt-4 w-full py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-300 text-foreground flex items-center justify-center gap-2 font-medium"
+                                aria-label="Toggle Theme"
+                            >
+                                {theme === "dark" ? (
+                                    <>
+                                        <Sun size={20} />
+                                        <span>Light Mode</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Moon size={20} />
+                                        <span>Dark Mode</span>
+                                    </>
+                                )}
+                            </button>
                         </div>
                     </motion.div>
                 )}

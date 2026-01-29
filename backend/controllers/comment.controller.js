@@ -1,10 +1,9 @@
 import Comment from "../models/Comment.js"
-import Ticket from "../models/Ticket.js";
-import Project from "../models/Project.js";
+import Ticket from "../models/Ticket.js"
 
 export async function addComment(req, res) {
     const { ticketId } = req.params;
-    const { comment } = req.body;
+    const { comment, parentId } = req.body;
     try {
         const ticket = await Ticket.findById(ticketId).populate("assignee")
 
@@ -12,7 +11,7 @@ export async function addComment(req, res) {
             return res.status(404).json({ message: "Ticket not found", success: false })
         }
 
-        const isAllowedToComment = (ticket.assignee._id.toString() === req.user.id) ||
+        const isAllowedToComment = (ticket.assignee?._id?.toString() === req.user.id) ||
             (req.project.owner.toString() === req.user.id) ||
             (req.project.members.includes(req.user.id))
 
@@ -23,8 +22,12 @@ export async function addComment(req, res) {
         const newComment = await Comment.create({
             ticketId,
             userId: req.user.id,
-            comment
+            comment,
+            parentId: parentId || null
         })
+
+        // Populate userId before returning
+        await newComment.populate("userId")
 
         return res.status(201).json({ message: "Comment added successfully", success: true, comment: newComment })
     } catch (error) {
@@ -42,7 +45,7 @@ export async function getComments(req, res) {
             return res.status(404).json({ message: "Ticket not found", success: false })
         }
 
-        const isAllowedToViewComments = (ticket.assignee._id.toString() === req.user.id) ||
+        const isAllowedToViewComments = (ticket.assignee?._id?.toString() === req.user.id) ||
             (req.project.owner.toString() === req.user.id) ||
             (req.project.members.includes(req.user.id))
 
@@ -50,7 +53,7 @@ export async function getComments(req, res) {
             return res.status(403).json({ message: "You are not authorized to view comments on this ticket", success: false })
         }
 
-        const comments = await Comment.find({ ticketId }).populate("userId")
+        const comments = await Comment.find({ ticketId }).populate("userId").sort({ createdAt: 1 })
 
         return res.status(200).json({ message: "Comments fetched successfully", success: true, comments })
     } catch (error) {

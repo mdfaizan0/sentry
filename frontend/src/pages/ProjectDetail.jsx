@@ -36,6 +36,7 @@ import BackButton from "@/components/ui/back-button"
 import { cn } from "@/lib/utils"
 import TicketKanbanBoard from "@/components/projects/kanban/TicketKanbanBoard"
 import TicketDetailModal from "@/components/projects/TicketDetailModal"
+import getInitials from "@/lib/getInitials"
 
 function ProjectDetail() {
     const { projectId } = useParams()
@@ -151,7 +152,7 @@ function ProjectDetail() {
                     <div className="flex flex-wrap items-center gap-6 text-sm text-muted-foreground pt-2">
                         <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-sm shadow-primary/10">
-                                <span className="font-bold text-xs">{project.owner?.name?.charAt(0).toUpperCase()}</span>
+                                <span className="font-bold text-xs">{getInitials(project.owner?.name)}</span>
                             </div>
                             <div className="flex flex-col">
                                 <span className="text-[10px] uppercase font-bold tracking-wider opacity-70">Created By</span>
