@@ -33,7 +33,6 @@ export async function addMemberByInvite(req, res) {
 
         const token = crypto.randomBytes(32).toString("hex")
 
-        // Populate owner to get the inviter's name for the email template
         await project.populate("owner")
 
         await sendInviteEmail(project, email, token, expiryHours)

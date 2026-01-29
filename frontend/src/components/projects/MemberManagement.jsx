@@ -78,7 +78,6 @@ const MemberManagement = ({ projectId, members, ownerId, isOwner, onRefresh }) =
             fetchInvites()
         } catch (error) {
             console.error("Failed to send invite:", error)
-            toast.error(error.response?.data?.message || "Failed to send invite")
         } finally {
             setIsSendingInvite(false)
         }

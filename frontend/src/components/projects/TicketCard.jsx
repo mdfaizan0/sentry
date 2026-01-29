@@ -60,12 +60,12 @@ const TicketCard = ({ ticket, onClick }) => {
     return (
         <Card
             onClick={() => onClick?.(ticket)}
-            className="group bg-card/40 border-white/5 hover:border-primary/30 hover:bg-primary/5 transition-all duration-300 shadow-none overflow-hidden relative cursor-pointer active:scale-[0.98]"
+            className="group bg-card/40 border-white/5 hover:border-primary/30 hover:bg-primary/5 transition-all duration-300 shadow-none overflow-hidden relative cursor-pointer active:scale-[0.98] flex flex-col h-full"
         >
             {/* Priority Sidebar Indicator */}
             <div className={cn("absolute left-0 top-0 bottom-0 w-1", currentPriority.color)} />
 
-            <CardContent className="p-4 pl-5 space-y-3">
+            <CardContent className="p-4 pl-5 flex flex-col flex-1 justify-between gap-3">
                 <div className="flex items-start justify-between gap-4">
                     <div className="space-y-1 flex-1">
                         <div className="flex items-center gap-2 mb-1">
@@ -78,16 +78,16 @@ const TicketCard = ({ ticket, onClick }) => {
                                 {priority}
                             </span>
                         </div>
-                        <h3 className="font-semibold text-sm leading-tight text-foreground/90 group-hover:text-primary transition-colors line-clamp-1">
+                        <h3 className="font-semibold text-sm leading-tight text-foreground group-hover:text-primary transition-colors line-clamp-1">
                             {title}
                         </h3>
-                        <p className="text-xs text-muted-foreground/70 line-clamp-2 leading-relaxed">
+                        <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
                             {description || "No description provided."}
                         </p>
                     </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-3 border-t border-white/5">
+                <div className="flex items-center justify-between pt-3 border-t border-white/5 mt-auto">
                     <div className="flex items-center gap-3">
                         {assignee ? (
                             <TooltipProvider>

@@ -148,9 +148,10 @@ export async function assignTicket(req, res) {
             return res.status(403).json({ message: "You are not authorized to assign this ticket", success: false })
         }
 
-        if (!project.members.includes(assigneeId)) {
-            console.log("project.members", project.members)
-            console.log("assigneeId", assigneeId)
+        const isMember = project.members.some(m => m.toString() === assigneeId)
+        const isProjectOwner = project.owner.toString() === assigneeId
+
+        if (!isMember && !isProjectOwner) {
             return res.status(403).json({ message: "Assignee has not been included in this project, add them into the project, then assign the ticket", success: false })
         }
 
@@ -229,7 +230,10 @@ export async function changeAssignee(req, res) {
             return res.status(403).json({ message: "You are not authorized to change the assignee of this ticket", success: false })
         }
 
-        if (!project.members.includes(assigneeId)) {
+        const isMember = project.members.some(m => m.toString() === assigneeId)
+        const isProjectOwner = project.owner.toString() === assigneeId
+
+        if (!isMember && !isProjectOwner) {
             return res.status(403).json({ message: "Assignee has not been included in this project, add them into the project, then assign the ticket", success: false })
         }
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { getOneTicket, updateTicket, deleteTicket, assignTicket, unassignTicket, changeAssignee } from "@/api/tickets.api"
 import { useAuth } from "@/contexts/auth/useAuth"
 import {
@@ -64,7 +64,7 @@ const priorityConfig = {
     "High": { text: "text-rose-400", bg: "bg-rose-500/10", border: "border-rose-500/20" }
 }
 
-const TicketDetailModal = ({ open, onOpenChange, ticketId, projectId, isOwner, members, onSuccess }) => {
+const TicketDetailModal = ({ open, onOpenChange, ticketId, projectId, isOwner, owner, members, onSuccess }) => {
     const { user } = useAuth()
     const [ticket, setTicket] = useState(null)
     const [isLoading, setIsLoading] = useState(true)
@@ -81,6 +81,15 @@ const TicketDetailModal = ({ open, onOpenChange, ticketId, projectId, isOwner, m
         status: "",
         priority: ""
     })
+
+    const allAssignees = useMemo(() => {
+        if (!members) return []
+        // Check if owner is already in members list
+        if (owner && !members.some(m => m._id === owner._id)) {
+            return [owner, ...members]
+        }
+        return members
+    }, [members, owner])
 
     const isAssignee = ticket?.assignee?._id === user?.id || ticket?.assignee === user?.id
     const canManageTicket = isOwner || isAssignee
@@ -214,7 +223,7 @@ const TicketDetailModal = ({ open, onOpenChange, ticketId, projectId, isOwner, m
                                             {ticket.priority}
                                         </Badge>
                                     </div>
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-2 mt-4">
                                         {!isEditing && (
                                             <>
                                                 {canManageTicket && (
@@ -367,7 +376,7 @@ const TicketDetailModal = ({ open, onOpenChange, ticketId, projectId, isOwner, m
                                                                     <SelectValue placeholder="Assign ticket..." />
                                                                 </SelectTrigger>
                                                                 <SelectContent className="bg-card border-white/10">
-                                                                    {members?.map(member => (
+                                                                    {allAssignees?.map(member => (
                                                                         <SelectItem key={member._id} value={member._id} className="text-xs">
                                                                             {member.name}
                                                                         </SelectItem>
