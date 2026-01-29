@@ -25,7 +25,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { ShieldCheck, Users, Ticket, Activity as ActivityIcon, Plus, MoreVertical, Edit, Trash2, Calendar, Loader2 } from "lucide-react"
+import { ShieldCheck, Users, Ticket, Activity as ActivityIcon, Plus, MoreVertical, Edit, Trash2, Calendar, Loader2, LayoutList, LayoutGrid } from "lucide-react"
 import { toast } from "sonner"
 
 import TicketList from "@/components/projects/TicketList"
@@ -33,6 +33,9 @@ import CreateTicketModal from "@/components/projects/CreateTicketModal"
 import MemberManagement from "@/components/projects/MemberManagement"
 import EditProjectModal from "@/components/projects/EditProjectModal"
 import BackButton from "@/components/ui/back-button"
+import { cn } from "@/lib/utils"
+import TicketKanbanBoard from "@/components/projects/kanban/TicketKanbanBoard"
+import TicketDetailModal from "@/components/projects/TicketDetailModal"
 
 function ProjectDetail() {
     const { projectId } = useParams()
@@ -48,6 +51,9 @@ function ProjectDetail() {
     const [isEditProjectOpen, setIsEditProjectOpen] = useState(false)
     const [isDeleteAlertOpen, setIsDeleteAlertOpen] = useState(false)
     const [isDeletingProject, setIsDeletingProject] = useState(false)
+    const [viewMode, setViewMode] = useState("list")
+    const [selectedTicket, setSelectedTicket] = useState(null)
+    const [isDetailOpen, setIsDetailOpen] = useState(false)
 
     const fetchProject = useCallback(async () => {
         try {
@@ -93,6 +99,11 @@ function ProjectDetail() {
             toast.error("Failed to delete project")
             setIsDeletingProject(false)
         }
+    }
+
+    const handleTicketClick = (ticket) => {
+        setSelectedTicket(ticket)
+        setIsDetailOpen(true)
     }
 
     if (isLoading) {
@@ -143,7 +154,7 @@ function ProjectDetail() {
                                 <span className="font-bold text-xs">{project.owner?.name?.charAt(0).toUpperCase()}</span>
                             </div>
                             <div className="flex flex-col">
-                                <span className="text-[10px] uppercase font-bold tracking-wider opacity-70">Owner</span>
+                                <span className="text-[10px] uppercase font-bold tracking-wider opacity-70">Created By</span>
                                 <span className="font-medium text-foreground">{project.owner?.name}</span>
                             </div>
                         </div>
@@ -231,15 +242,49 @@ function ProjectDetail() {
                 </TabsList>
 
                 <TabsContent value="tickets" className="outline-none focus:ring-0 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                    <TicketList
-                        tickets={tickets}
-                        isLoading={isTicketsLoading}
-                        projectId={projectId}
-                        isOwner={isOwner}
-                        owner={project.owner}
-                        members={project.members}
-                        onRefresh={fetchTickets}
-                    />
+                    <div className="space-y-6">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                                <h2 className="text-xl font-semibold">Project Tickets</h2>
+                                <div className="flex items-center bg-white/5 rounded-lg p-1 border border-white/10">
+                                    <button
+                                        onClick={() => setViewMode("list")}
+                                        className={cn("p-1.5 rounded-md transition-all", viewMode === "list" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-white/5")}
+                                    >
+                                        <LayoutList size={16} />
+                                    </button>
+                                    <button
+                                        onClick={() => setViewMode("board")}
+                                        className={cn("p-1.5 rounded-md transition-all", viewMode === "board" ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground hover:bg-white/5")}
+                                    >
+                                        <LayoutGrid size={16} />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {viewMode === "list" ? (
+                            <TicketList
+                                tickets={tickets}
+                                isLoading={isTicketsLoading}
+                                projectId={projectId}
+                                isOwner={isOwner}
+                                owner={project.owner}
+                                members={project.members}
+                                onRefresh={fetchTickets}
+                                onTicketClick={handleTicketClick}
+                            />
+                        ) : (
+                            <TicketKanbanBoard
+                                tickets={tickets}
+                                projectId={projectId}
+                                isOwner={isOwner}
+                                currentUserId={user?.id}
+                                onTicketUpdate={fetchTickets}
+                                onTicketClick={handleTicketClick}
+                            />
+                        )}
+                    </div>
                 </TabsContent>
 
                 <TabsContent value="members" className="outline-none focus:ring-0 animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -273,6 +318,19 @@ function ProjectDetail() {
                 project={project}
                 onSuccess={fetchProject}
             />
+
+            {selectedTicket && (
+                <TicketDetailModal
+                    open={isDetailOpen}
+                    onOpenChange={setIsDetailOpen}
+                    ticketId={selectedTicket._id}
+                    projectId={projectId}
+                    isOwner={isOwner}
+                    owner={project.owner}
+                    members={project.members}
+                    onSuccess={fetchTickets}
+                />
+            )}
 
             <AlertDialog open={isDeleteAlertOpen} onOpenChange={setIsDeleteAlertOpen}>
                 <AlertDialogContent className="bg-card border-white/10">

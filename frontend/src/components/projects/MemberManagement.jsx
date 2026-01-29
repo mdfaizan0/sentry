@@ -282,13 +282,13 @@ const MemberManagement = ({ projectId, members, ownerId, isOwner, onRefresh }) =
 
                     <div className="flex bg-white/5 p-1 rounded-lg mb-4">
                         <button
-                            className={cn("flex-1 px-3 py-1.5 text-xs font-medium rounded-md transition-all", inviteMode === "invite" ? "bg-white/10 text-white shadow-sm" : "text-muted-foreground hover:text-white")}
+                            className={cn("flex-1 px-3 py-1.5 text-xs font-medium rounded-md transition-all", inviteMode === "invite" ? "bg-white/10 text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}
                             onClick={() => setInviteMode("invite")}
                         >
                             Invite by Email
                         </button>
                         <button
-                            className={cn("flex-1 px-3 py-1.5 text-xs font-medium rounded-md transition-all", inviteMode === "direct" ? "bg-white/10 text-white shadow-sm" : "text-muted-foreground hover:text-white")}
+                            className={cn("flex-1 px-3 py-1.5 text-xs font-medium rounded-md transition-all", inviteMode === "direct" ? "bg-white/10 text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}
                             onClick={() => setInviteMode("direct")}
                         >
                             Find User

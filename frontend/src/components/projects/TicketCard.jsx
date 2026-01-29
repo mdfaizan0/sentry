@@ -45,7 +45,7 @@ const formatDate = (dateString) => {
     }).format(new Date(dateString))
 }
 
-const TicketCard = ({ ticket, onClick }) => {
+const TicketCard = ({ ticket, onClick, hideStatus = false }) => {
     const { title, description, status, priority, assignee, createdAt } = ticket
 
     const StatusIcon = statusConfig[status]?.icon || Circle
@@ -69,10 +69,12 @@ const TicketCard = ({ ticket, onClick }) => {
                 <div className="flex items-start justify-between gap-4">
                     <div className="space-y-1 flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                            <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0 border flex items-center gap-1 font-medium", currentStatus.color)}>
-                                <StatusIcon size={10} />
-                                {status}
-                            </Badge>
+                            {!hideStatus && (
+                                <Badge variant="outline" className={cn("text-[10px] px-1.5 py-0 border flex items-center gap-1 font-medium", currentStatus.color)}>
+                                    <StatusIcon size={10} />
+                                    {status}
+                                </Badge>
+                            )}
                             <span className={cn("text-[10px] font-bold uppercase tracking-wider flex items-center gap-1", currentPriority.text)}>
                                 <AlertCircle size={10} />
                                 {priority}

@@ -28,14 +28,7 @@ export const TicketSkeleton = () => (
     </Card>
 )
 
-const TicketList = ({ tickets, isLoading, projectId, isOwner, owner, members, onRefresh }) => {
-    const [selectedTicket, setSelectedTicket] = useState(null)
-    const [isDetailOpen, setIsDetailOpen] = useState(false)
-
-    const handleTicketClick = (ticket) => {
-        setSelectedTicket(ticket)
-        setIsDetailOpen(true)
-    }
+const TicketList = ({ tickets, isLoading, projectId, isOwner, owner, members, onRefresh, onTicketClick }) => {
 
     if (isLoading) {
         return (
@@ -62,30 +55,15 @@ const TicketList = ({ tickets, isLoading, projectId, isOwner, owner, members, on
     }
 
     return (
-        <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {tickets.map((ticket) => (
-                    <TicketCard
-                        key={ticket._id}
-                        ticket={ticket}
-                        onClick={handleTicketClick}
-                    />
-                ))}
-            </div>
-
-            {selectedTicket && (
-                <TicketDetailModal
-                    open={isDetailOpen}
-                    onOpenChange={setIsDetailOpen}
-                    ticketId={selectedTicket._id}
-                    projectId={projectId}
-                    isOwner={isOwner}
-                    owner={owner}
-                    members={members}
-                    onSuccess={onRefresh}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {tickets.map((ticket) => (
+                <TicketCard
+                    key={ticket._id}
+                    ticket={ticket}
+                    onClick={onTicketClick}
                 />
-            )}
-        </>
+            ))}
+        </div>
     )
 }
 
