@@ -1,5 +1,5 @@
 import { motion } from "framer-motion"
-import { Shield, Zap, Target, Users, ArrowRight, CheckCircle2, BarChart3, Clock } from "lucide-react"
+import { Zap, Target, Users, ArrowRight } from "lucide-react"
 import { Link } from "react-router-dom"
 import Navbar from "../components/Navbar"
 

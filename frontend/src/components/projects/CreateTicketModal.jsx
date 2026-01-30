@@ -38,7 +38,7 @@ const CreateTicketModal = ({ open, onOpenChange, projectId, onSuccess }) => {
                 title: title.trim(),
                 description: description.trim(),
                 priority,
-                status: "Open" // Default status as per backend
+                status: "Open"
             })
 
             toast.success("Ticket created successfully")

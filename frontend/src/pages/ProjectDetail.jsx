@@ -5,7 +5,6 @@ import { listAllTickets } from "@/api/tickets.api"
 import { useAuth } from "@/contexts/auth/useAuth"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Card, CardTitle, CardDescription } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
 import {
@@ -411,16 +410,5 @@ function ProjectDetail() {
     )
 }
 
-const PlaceholderSection = ({ title, description }) => (
-    <Card className="bg-card/50 border-white/5 border-dashed border-2 py-12 flex flex-col items-center justify-center text-center shadow-none">
-        <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center mb-4 text-muted-foreground">
-            <ActivityIcon size={24} />
-        </div>
-        <CardTitle className="text-xl mb-2">{title}</CardTitle>
-        <CardDescription className="max-w-md mx-auto">
-            {description}
-        </CardDescription>
-    </Card>
-)
 
 export default ProjectDetail

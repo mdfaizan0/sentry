@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Search } from "lucide-react"
 import {
     DndContext,
@@ -10,7 +10,7 @@ import {
     useSensors,
     defaultDropAnimationSideEffects,
 } from "@dnd-kit/core"
-import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable"
+import { sortableKeyboardCoordinates } from "@dnd-kit/sortable"
 import { toast } from "sonner"
 import TicketKanbanColumn, { TicketKanbanColumnSkeleton } from "./TicketKanbanColumn"
 import TicketCard from "../TicketCard"
@@ -84,10 +84,7 @@ const TicketKanbanBoard = ({ tickets: initialTickets, originalTickets, isLoading
 
         // Move item to the new container's list in local state for smooth visualization
         setItems((prev) => {
-            const activeItems = prev.filter(t => t.status === activeContainer)
             const overItems = prev.filter(t => t.status === overContainer)
-
-            const activeIndex = activeItems.findIndex(t => t._id === active.id)
             const overIndex = overItems.findIndex(t => t._id === overId)
 
             let newIndex
@@ -142,8 +139,6 @@ const TicketKanbanBoard = ({ tickets: initialTickets, originalTickets, isLoading
         try {
             await updateTicket(projectId, active.id, { status: overContainer })
             toast.success(`Ticket moved to ${overContainer}`)
-            // Delay the refetch slightly to allow the optimistic update to settle
-            // This prevents visual snap-back while ensuring parent state syncs
             setTimeout(() => {
                 onTicketUpdate?.()
             }, 100)

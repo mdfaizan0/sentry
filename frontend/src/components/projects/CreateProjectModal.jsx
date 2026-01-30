@@ -40,7 +40,6 @@ const CreateProjectModal = ({ open, onOpenChange, onSuccess }) => {
             }
         } catch (error) {
             console.error("Failed to create project:", error)
-            // Error toast is handled by client.js interceptor
         } finally {
             setIsSubmitting(false)
         }

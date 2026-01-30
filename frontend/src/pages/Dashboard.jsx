@@ -6,7 +6,7 @@ import { Navigate, Link } from "react-router-dom"
 import ProjectList from "@/components/projects/ProjectList"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Plus, Layout, CheckCircle2, AlertTriangle, ArrowRight, Clock } from "lucide-react"
+import { Plus, Layout, CheckCircle2, AlertTriangle, Clock } from "lucide-react"
 import CreateProjectModal from "@/components/projects/CreateProjectModal"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
@@ -52,7 +52,7 @@ function Dashboard() {
             {/* Header section */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="space-y-1">
-                    <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                    <h1 className="text-4xl font-bold tracking-tight bg-linear-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
                         Dashboard
                     </h1>
                     <p className="text-muted-foreground text-lg">
@@ -138,7 +138,7 @@ function Dashboard() {
                             activeWork.map((ticket) => (
                                 <Link
                                     key={ticket._id}
-                                    to={`/project/${ticket.projectId._id}?ticket=${ticket._id}`}
+                                    to={`/project/${ticket.projectId._id}/ticket/${ticket._id}`}
                                     className="block group"
                                 >
                                     <div className="p-4 rounded-xl bg-card/30 border border-white/5 hover:border-primary/30 hover:bg-white/5 transition-all group-active:scale-[0.98]">

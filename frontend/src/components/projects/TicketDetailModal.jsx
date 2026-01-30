@@ -1,15 +1,12 @@
 import { useState, useEffect, useCallback, useMemo } from "react"
 import { useNavigate } from "react-router-dom"
-import { getOneTicket, updateTicket, deleteTicket, assignTicket, unassignTicket, changeAssignee } from "@/api/tickets.api"
+import { getOneTicket, deleteTicket, assignTicket, unassignTicket, changeAssignee } from "@/api/tickets.api"
 import { getComments } from "@/api/comments.api"
 import { useAuth } from "@/contexts/auth/useAuth"
 import EditTicketModal from "./EditTicketModal"
-import CommentThread from "./CommentThread"
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
-    DialogFooter,
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog"
@@ -24,9 +21,6 @@ import {
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import {
     Select,
@@ -45,7 +39,6 @@ import {
     Circle,
     CheckCircle2,
     Calendar,
-    ArrowLeft,
     MessageSquare,
     ExternalLink
 } from "lucide-react"
@@ -85,8 +78,7 @@ const TicketDetailModal = ({ open, onOpenChange, projectId, ticketId, isOwner, o
 
     const allAssigneesList = useMemo(() => {
         if (!members) return []
-        // Check if owner is already in members list
-        const ownerObj = typeof owner === 'string' ? null : owner // If it's an ID, we can't easily add it without more info, but usually it's a populated object here
+        const ownerObj = typeof owner === 'string' ? null : owner
         if (ownerObj && !members.some(m => m._id === ownerObj._id)) {
             return [ownerObj, ...members]
         }

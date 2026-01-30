@@ -22,21 +22,15 @@ import {
     UserPlus,
     Mail,
     Trash2,
-    Clock,
-    CheckCircle2,
     User,
-    Shield,
     Loader2,
-    XCircle,
-    Copy,
-    Check
+    XCircle
 } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
 const MemberManagement = ({ projectId, members, ownerId, isOwner, onRefresh }) => {
     const [invites, setInvites] = useState([])
-    const [isInviting, setIsInviting] = useState(false)
     const [isFetchingInvites, setIsFetchingInvites] = useState(false)
     const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
     const [inviteEmail, setInviteEmail] = useState("")

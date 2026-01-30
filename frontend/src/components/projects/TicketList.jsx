@@ -1,9 +1,7 @@
-import { useState } from "react"
 import TicketCard from "./TicketCard"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Card, CardContent } from "@/components/ui/card"
 import { Ticket, Search, X } from "lucide-react"
-import TicketDetailModal from "./TicketDetailModal"
 
 export const TicketSkeleton = () => (
     <Card className="bg-card/40 border-white/5 shadow-none overflow-hidden relative">
@@ -28,7 +26,7 @@ export const TicketSkeleton = () => (
     </Card>
 )
 
-const TicketList = ({ tickets, originalTickets, isLoading, projectId, isOwner, owner, members, onRefresh, onTicketClick }) => {
+const TicketList = ({ tickets, originalTickets, isLoading, onTicketClick }) => {
 
     if (isLoading) {
         return (

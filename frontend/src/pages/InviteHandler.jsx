@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate, useParams, Link } from "react-router-dom"
 import { acceptInvite, rejectInvite } from "@/api/projects.api"
 import { Loader2, CheckCircle2, XCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 
 const InviteHandler = () => {
     const { action } = useParams() // 'accept' or 'reject'
@@ -75,9 +75,6 @@ const InviteHandler = () => {
                     </CardDescription>
                 </CardHeader>
 
-                <CardContent>
-                    {/* Optional content based on state */}
-                </CardContent>
 
                 <CardFooter className="flex justify-center gap-4">
                     {status === "loading" ? (

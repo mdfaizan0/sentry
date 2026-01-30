@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils"
 import getInitials from "@/lib/getInitials"
 import formatRelativeTime from "@/lib/formatRelativeTime"
 
-const CommentThread = ({ ticketId, projectId }) => {
+const CommentThread = ({ ticketId }) => {
     const [comments, setComments] = useState([])
     const [isLoading, setIsLoading] = useState(true)
     const [commentText, setCommentText] = useState("")
