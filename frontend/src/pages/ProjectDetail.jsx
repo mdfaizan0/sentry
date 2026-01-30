@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useMemo } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { getOneProject, deleteProject } from "@/api/projects.api"
 import { listAllTickets } from "@/api/tickets.api"
@@ -37,6 +37,7 @@ import { cn } from "@/lib/utils"
 import TicketKanbanBoard from "@/components/projects/kanban/TicketKanbanBoard"
 import TicketDetailModal from "@/components/projects/TicketDetailModal"
 import getInitials from "@/lib/getInitials"
+import TicketFilters from "@/components/projects/TicketFilters"
 
 function ProjectDetail() {
     const { projectId } = useParams()
@@ -55,6 +56,33 @@ function ProjectDetail() {
     const [viewMode, setViewMode] = useState("list")
     const [selectedTicket, setSelectedTicket] = useState(null)
     const [isDetailOpen, setIsDetailOpen] = useState(false)
+
+    // Filter State
+    const [searchQuery, setSearchQuery] = useState("")
+    const [statusFilter, setStatusFilter] = useState("all")
+    const [priorityFilter, setPriorityFilter] = useState("all")
+    const [assigneeFilter, setAssigneeFilter] = useState("all")
+
+    const filteredTickets = useMemo(() => {
+        return tickets.filter(ticket => {
+            // Search filter
+            const matchesSearch = !searchQuery ||
+                ticket.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                ticket.description.toLowerCase().includes(searchQuery.toLowerCase())
+
+            // Status filter
+            const matchesStatus = statusFilter === "all" || ticket.status === statusFilter
+
+            // Priority filter
+            const matchesPriority = priorityFilter === "all" || ticket.priority === priorityFilter
+
+            // Assignee filter
+            const matchesAssignee = assigneeFilter === "all" ||
+                (assigneeFilter === "unassigned" ? !ticket.assignee : ticket.assignee?._id === assigneeFilter)
+
+            return matchesSearch && matchesStatus && matchesPriority && matchesAssignee
+        })
+    }, [tickets, searchQuery, statusFilter, priorityFilter, assigneeFilter])
 
     const fetchProject = useCallback(async () => {
         try {
@@ -105,6 +133,13 @@ function ProjectDetail() {
     const handleTicketClick = (ticket) => {
         setSelectedTicket(ticket)
         setIsDetailOpen(true)
+    }
+
+    const handleClearFilters = () => {
+        setSearchQuery("")
+        setStatusFilter("all")
+        setPriorityFilter("all")
+        setAssigneeFilter("all")
     }
 
     if (isLoading) {
@@ -212,10 +247,10 @@ function ProjectDetail() {
 
             {/* Feature Tabs */}
             <Tabs defaultValue="tickets" className="w-full space-y-8">
-                <TabsList className="bg-transparent border-b border-white/5 w-full justify-start h-auto p-0 rounded-none space-x-8">
+                <TabsList className="bg-transparent border-b border-white/5 w-full justify-start h-auto p-0 rounded-none space-x-8 overflow-x-auto scrollbar-hide">
                     <TabsTrigger
                         value="tickets"
-                        className="bg-transparent border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-2 pb-4 pt-2 font-medium text-muted-foreground data-[state=active]:text-foreground rounded-none shadow-none transition-all hover:text-foreground/80"
+                        className="bg-transparent border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-2 pb-4 pt-2 font-medium text-muted-foreground data-[state=active]:text-foreground rounded-none shadow-none transition-all hover:text-foreground/80 cursor-pointer"
                     >
                         <div className="flex items-center gap-2">
                             <Ticket size={16} />
@@ -224,7 +259,7 @@ function ProjectDetail() {
                     </TabsTrigger>
                     <TabsTrigger
                         value="members"
-                        className="bg-transparent border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-2 pb-4 pt-2 font-medium text-muted-foreground data-[state=active]:text-foreground rounded-none shadow-none transition-all hover:text-foreground/80"
+                        className="bg-transparent border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-2 pb-4 pt-2 font-medium text-muted-foreground data-[state=active]:text-foreground rounded-none shadow-none transition-all hover:text-foreground/80 cursor-pointer"
                     >
                         <div className="flex items-center gap-2">
                             <Users size={16} />
@@ -233,7 +268,7 @@ function ProjectDetail() {
                     </TabsTrigger>
                     <TabsTrigger
                         value="activity"
-                        className="bg-transparent border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-2 pb-4 pt-2 font-medium text-muted-foreground data-[state=active]:text-foreground rounded-none shadow-none transition-all hover:text-foreground/80"
+                        className="bg-transparent border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-2 pb-4 pt-2 font-medium text-muted-foreground data-[state=active]:text-foreground rounded-none shadow-none transition-all hover:text-foreground/80 cursor-pointer"
                     >
                         <div className="flex items-center gap-2">
                             <ActivityIcon size={16} />
@@ -264,9 +299,23 @@ function ProjectDetail() {
                             </div>
                         </div>
 
+                        <TicketFilters
+                            searchQuery={searchQuery}
+                            setSearchQuery={setSearchQuery}
+                            statusFilter={statusFilter}
+                            setStatusFilter={setStatusFilter}
+                            priorityFilter={priorityFilter}
+                            setPriorityFilter={setPriorityFilter}
+                            assigneeFilter={assigneeFilter}
+                            setAssigneeFilter={setAssigneeFilter}
+                            members={project.members}
+                            onClearFilters={handleClearFilters}
+                        />
+
                         {viewMode === "list" ? (
                             <TicketList
-                                tickets={tickets}
+                                tickets={filteredTickets}
+                                originalTickets={tickets}
                                 isLoading={isTicketsLoading}
                                 projectId={projectId}
                                 isOwner={isOwner}
@@ -277,7 +326,9 @@ function ProjectDetail() {
                             />
                         ) : (
                             <TicketKanbanBoard
-                                tickets={tickets}
+                                tickets={filteredTickets}
+                                originalTickets={tickets}
+                                isLoading={isTicketsLoading}
                                 projectId={projectId}
                                 isOwner={isOwner}
                                 currentUserId={user?.id}

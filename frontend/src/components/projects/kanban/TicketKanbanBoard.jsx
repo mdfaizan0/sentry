@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react"
+import { Search } from "lucide-react"
 import {
     DndContext,
     DragOverlay,
@@ -11,13 +12,13 @@ import {
 } from "@dnd-kit/core"
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable"
 import { toast } from "sonner"
-import TicketKanbanColumn from "./TicketKanbanColumn"
+import TicketKanbanColumn, { TicketKanbanColumnSkeleton } from "./TicketKanbanColumn"
 import TicketCard from "../TicketCard"
 import { updateTicket } from "@/api/tickets.api"
 
 const columnsId = ["Open", "In Progress", "Closed"]
 
-const TicketKanbanBoard = ({ tickets: initialTickets, projectId, isOwner, currentUserId, onTicketUpdate, onTicketClick }) => {
+const TicketKanbanBoard = ({ tickets: initialTickets, originalTickets, isLoading, projectId, isOwner, currentUserId, onTicketUpdate, onTicketClick }) => {
     // Local state for optimistic updates
     const [items, setItems] = useState(initialTickets)
     const [activeId, setActiveId] = useState(null)
@@ -173,17 +174,41 @@ const TicketKanbanBoard = ({ tickets: initialTickets, projectId, isOwner, curren
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
         >
-            <div className="flex min-h-[600px] w-full gap-6 overflow-x-auto pb-4 items-stretch">
-                {columnsId.map((colId) => (
-                    <TicketKanbanColumn
-                        key={colId}
-                        id={colId}
-                        tickets={columns[colId]}
-                        isOwner={isOwner}
-                        currentUserId={currentUserId}
-                        onTicketClick={onTicketClick}
-                    />
-                ))}
+            <div className="flex flex-col gap-6">
+                {isLoading ? (
+                    <div className="flex min-h-[600px] w-full gap-6 overflow-x-auto pb-4 items-stretch">
+                        {columnsId.map((colId) => (
+                            <TicketKanbanColumnSkeleton key={colId} id={colId} />
+                        ))}
+                    </div>
+                ) : (
+                    <>
+                        {originalTickets?.length > 0 && initialTickets.length === 0 && (
+                            <div className="flex flex-col items-center justify-center p-8 border border-dashed rounded-xl border-white/10 bg-white/5 text-center animate-in fade-in zoom-in-95 duration-300">
+                                <div className="w-10 h-10 bg-white/5 rounded-full flex items-center justify-center mb-3 text-muted-foreground/50">
+                                    <Search className="h-5 w-5" />
+                                </div>
+                                <p className="text-base font-medium">No tickets match current filters</p>
+                                <p className="text-xs text-muted-foreground mt-1">
+                                    Adjust your filters to see more tickets.
+                                </p>
+                            </div>
+                        )}
+
+                        <div className="flex min-h-[600px] w-full gap-6 overflow-x-auto pb-4 items-stretch">
+                            {columnsId.map((colId) => (
+                                <TicketKanbanColumn
+                                    key={colId}
+                                    id={colId}
+                                    tickets={columns[colId]}
+                                    isOwner={isOwner}
+                                    currentUserId={currentUserId}
+                                    onTicketClick={onTicketClick}
+                                />
+                            ))}
+                        </div>
+                    </>
+                )}
             </div>
 
             <DragOverlay dropAnimation={dropAnimation}>

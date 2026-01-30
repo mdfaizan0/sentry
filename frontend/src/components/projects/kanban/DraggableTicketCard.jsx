@@ -27,7 +27,7 @@ const DraggableTicketCard = ({ ticket, isOwner, currentUserId, onClick }) => {
     }
 
     const cardContent = (
-        <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="touch-none h-full">
+        <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="touch-none h-full cursor-grab active:cursor-grabbing">
             {/* We use h-full to ensure the wrapper fills the sortable item space */}
             <TicketCard ticket={ticket} onClick={onClick} hideStatus={true} />
         </div>

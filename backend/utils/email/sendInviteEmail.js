@@ -9,7 +9,7 @@ export const sendInviteEmail = async (project, email, token, expiryHours) => {
         const transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
-                user: 'webdfaizan@gmail.com',
+                user: process.env.EMAIL_USER,
                 pass: process.env.GOOGLE_APP_PASSWORD
             }
         });
@@ -27,7 +27,7 @@ export const sendInviteEmail = async (project, email, token, expiryHours) => {
         })
 
         const mailOptions = {
-            from: "Mohd Faizan <webdfaizan@gmail.com>",
+            from: `"Sentry" <${process.env.EMAIL_USER}>`,
             to: email,
             subject: `Invitation to join a project`,
             html: emailTemplate
@@ -35,7 +35,7 @@ export const sendInviteEmail = async (project, email, token, expiryHours) => {
 
         const info = await transporter.sendMail(mailOptions)
         if (info.accepted.length > 0) {
-            console.log("Invite email sent successfully to:", email)
+            
         } else {
             console.log("Invite email failed to send to:", email)
         }

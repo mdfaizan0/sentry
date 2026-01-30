@@ -4,6 +4,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import DraggableTicketCard from "./DraggableTicketCard"
 import { cn } from "@/lib/utils"
 import { Circle, Clock, CheckCircle2 } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
 
 const statusConfig = {
     "Open": {
@@ -82,6 +83,43 @@ const TicketKanbanColumn = ({ id, tickets, isOwner, currentUserId, onTicketClick
 
                 {/* Colored Bottom Bar Accent */}
                 <div className={cn("absolute bottom-0 left-0 right-0 h-0.5 opacity-50", config.barColor)} />
+            </div>
+        </div>
+    )
+}
+
+export const TicketKanbanColumnSkeleton = ({ id }) => {
+    const config = statusConfig[id] || statusConfig["Open"]
+    const Icon = config.icon
+
+    return (
+        <div className={cn(
+            "flex flex-col h-full flex-1 min-w-[340px] rounded-2xl border-2 border-dashed overflow-hidden opacity-60",
+            config.borderColor,
+            config.bgGradient
+        )}>
+            <div className={cn("p-5 border-b-2 border-dashed flex items-center justify-between backdrop-blur-sm", config.borderColor)}>
+                <div className="flex items-center gap-3">
+                    <Skeleton className="h-9 w-9 rounded-lg" />
+                    <Skeleton className="h-5 w-24" />
+                </div>
+                <Skeleton className="h-6 w-8 rounded-full" />
+            </div>
+
+            <div className="p-4 space-y-4">
+                {[1, 2, 3].map((i) => (
+                    <div key={i} className="bg-card/40 border-white/5 border rounded-xl p-4 space-y-3">
+                        <div className="flex items-center gap-2">
+                            <Skeleton className="h-4 w-12" />
+                            <Skeleton className="h-3 w-10" />
+                        </div>
+                        <Skeleton className="h-5 w-full" />
+                        <div className="pt-3 border-t border-white/5 flex justify-between">
+                            <Skeleton className="h-5 w-20 rounded-full" />
+                            <Skeleton className="h-4 w-12" />
+                        </div>
+                    </div>
+                ))}
             </div>
         </div>
     )

@@ -374,7 +374,7 @@ const TicketDetailModal = ({ open, onOpenChange, projectId, ticketId, isOwner, o
                             <div className="px-6 pb-6">
                                 <button
                                     onClick={() => navigate(`/project/${projectId}/ticket/${ticketId}`)}
-                                    className="w-full group relative flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-primary/30 transition-all duration-300 text-left"
+                                    className="w-full group relative flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 hover:border-primary/30 transition-all duration-300 text-left cursor-pointer"
                                 >
                                     <div className="flex items-center gap-4">
                                         <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">

@@ -28,7 +28,7 @@ function Register() {
       toast.success("Account created successfully!")
       navigate("/dashboard")
     } catch (error) {
-      console.log(error)
+      toast.error(error.message || "Failed to create account")
     } finally {
       setLoading(false)
     }

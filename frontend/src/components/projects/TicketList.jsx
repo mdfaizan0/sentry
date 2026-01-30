@@ -2,7 +2,7 @@ import { useState } from "react"
 import TicketCard from "./TicketCard"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Card, CardContent } from "@/components/ui/card"
-import { Ticket } from "lucide-react"
+import { Ticket, Search, X } from "lucide-react"
 import TicketDetailModal from "./TicketDetailModal"
 
 export const TicketSkeleton = () => (
@@ -28,7 +28,7 @@ export const TicketSkeleton = () => (
     </Card>
 )
 
-const TicketList = ({ tickets, isLoading, projectId, isOwner, owner, members, onRefresh, onTicketClick }) => {
+const TicketList = ({ tickets, originalTickets, isLoading, projectId, isOwner, owner, members, onRefresh, onTicketClick }) => {
 
     if (isLoading) {
         return (
@@ -40,7 +40,10 @@ const TicketList = ({ tickets, isLoading, projectId, isOwner, owner, members, on
         )
     }
 
-    if (!tickets || tickets.length === 0) {
+    const hasNoTicketsAtAll = !originalTickets || originalTickets.length === 0
+    const hasFiltersActive = originalTickets?.length > 0 && tickets?.length === 0
+
+    if (hasNoTicketsAtAll) {
         return (
             <div className="flex flex-col items-center justify-center p-12 border border-dashed rounded-xl border-white/10 bg-white/5 text-center">
                 <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center mb-4 text-muted-foreground/50">
@@ -49,6 +52,20 @@ const TicketList = ({ tickets, isLoading, projectId, isOwner, owner, members, on
                 <p className="text-lg font-medium">No tickets yet for this project</p>
                 <p className="text-sm text-muted-foreground mt-1 max-w-[250px]">
                     Create a new ticket to start tracking issues and tasks.
+                </p>
+            </div>
+        )
+    }
+
+    if (hasFiltersActive) {
+        return (
+            <div className="flex flex-col items-center justify-center p-12 border border-dashed rounded-xl border-white/10 bg-white/5 text-center animate-in fade-in zoom-in-95 duration-300">
+                <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center mb-4 text-muted-foreground/50">
+                    <Search className="h-6 w-6" />
+                </div>
+                <p className="text-lg font-medium">No tickets match current filters</p>
+                <p className="text-sm text-muted-foreground mt-1 max-w-[280px]">
+                    Try adjusting your search or filters to find what you're looking for.
                 </p>
             </div>
         )

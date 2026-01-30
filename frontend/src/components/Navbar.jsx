@@ -75,7 +75,7 @@ const Navbar = () => {
                     <div className="flex items-center gap-3 ml-2">
                         <button
                             onClick={toggleTheme}
-                            className="p-2.5 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-300 text-foreground"
+                            className="p-2.5 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-300 text-foreground cursor-pointer"
                             aria-label="Toggle Theme"
                         >
                             {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
@@ -138,7 +138,7 @@ const Navbar = () => {
 
                 {/* Mobile Menu Toggle */}
                 <button
-                    className="md:hidden p-2 text-foreground"
+                    className="md:hidden p-2 text-foreground cursor-pointer"
                     onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
                 >
                     {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -209,7 +209,7 @@ const Navbar = () => {
                             {/* Theme Toggle for Mobile */}
                             <button
                                 onClick={toggleTheme}
-                                className="mt-4 w-full py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-300 text-foreground flex items-center justify-center gap-2 font-medium"
+                                className="mt-4 w-full py-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-300 text-foreground flex items-center justify-center gap-2 font-medium cursor-pointer"
                                 aria-label="Toggle Theme"
                             >
                                 {theme === "dark" ? (
