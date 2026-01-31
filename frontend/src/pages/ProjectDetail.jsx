@@ -265,15 +265,6 @@ function ProjectDetail() {
                             Members
                         </div>
                     </TabsTrigger>
-                    <TabsTrigger
-                        value="activity"
-                        className="bg-transparent border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-2 pb-4 pt-2 font-medium text-muted-foreground data-[state=active]:text-foreground rounded-none shadow-none transition-all hover:text-foreground/80 cursor-pointer"
-                    >
-                        <div className="flex items-center gap-2">
-                            <ActivityIcon size={16} />
-                            Activity
-                        </div>
-                    </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="tickets" className="outline-none focus:ring-0 animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -345,13 +336,6 @@ function ProjectDetail() {
                         ownerId={project.owner?._id}
                         isOwner={isOwner}
                         onRefresh={fetchProject}
-                    />
-                </TabsContent>
-
-                <TabsContent value="activity" className="outline-none focus:ring-0 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                    <PlaceholderSection
-                        title="Project Activity"
-                        description="Track changes, comments, and updates made to the project and its tickets. This feature is coming soon."
                     />
                 </TabsContent>
             </Tabs>
